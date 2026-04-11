@@ -2,149 +2,348 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Comm-OS | Official Terminal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Comm-OS Global First & Unique Terminal — Robust, offline-first, real-time negotiation vault for worldwide official records.">
+    <title>Comm-OS | Terminal — GLOBAL FIRST &amp; UNIQUE</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --bg: #0b0e11; --panel: #15191c; --accent: #00a884; --official: #005c4b; --text: #e9edef; }
-        body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
-
-        /* Left Pane: WhatsApp/Telegram Hybrid */
-        #chat-pane { width: 320px; border-right: 1px solid #222d34; display: flex; flex-direction: column; background: var(--panel); }
-        .pane-title { padding: 15px; font-size: 0.8rem; font-weight: 600; color: var(--accent); border-bottom: 1px solid #222d34; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .bubble { background: #202c33; padding: 8px 12px; border-radius: 8px; font-size: 0.9rem; align-self: flex-start; border: 1px solid #303c44; }
-
-        /* Center Pane: Word/Outlook Hybrid */
-        #doc-pane { flex: 1; display: flex; flex-direction: column; background: var(--bg); padding: 40px; position: relative; }
-        #editor { flex: 1; background: transparent; color: var(--text); border: none; font-size: 1.1rem; line-height: 1.6; outline: none; resize: none; font-family: 'Georgia', serif; }
-        
-        /* Signature UX (The Smart Pen Layer) */
-        #sig-canvas-container { 
-            display: none; position: absolute; bottom: 100px; right: 80px; 
-            width: 300px; height: 150px; border: 2px dashed var(--accent); background: rgba(0, 168, 132, 0.05); border-radius: 8px; 
+        :root { 
+            --bg: #0d1117; 
+            --panel: #161b22; 
+            --accent: #58a6ff; 
+            --danger: #f85149; 
+            --text: #c9d1d9; 
         }
-        canvas { width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
-
-        .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { background: var(--official); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        .btn:disabled { opacity: 0.3; }
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+            background: var(--bg); 
+            color: var(--text); 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden; 
+        }
         
-        /* Official Status UI */
-        #watermark { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 8rem; opacity: 0.05; font-weight: 900; pointer-events: none; }
+        /* Left: Casual Stream */
+        #stream { 
+            width: 360px; 
+            border-right: 1px solid #30363d; 
+            display: flex; 
+            flex-direction: column; 
+            background: var(--panel); 
+            box-shadow: 2px 0 8px rgba(0,0,0,0.3);
+        }
+        .stream-header { 
+            padding: 16px 20px; 
+            border-bottom: 1px solid #30363d; 
+            font-size: 0.8rem; 
+            font-weight: 700; 
+            letter-spacing: 1.5px; 
+            color: var(--accent); 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        .stream-header::after {
+            content: "🌍 GLOBAL FIRST v1.0 • UNIQUE";
+            font-size: 0.65rem;
+            background: #21262d;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            color: #fff;
+            font-weight: 500;
+        }
+        #chat-box { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 12px; 
+            scrollbar-width: thin;
+        }
+        .bubble { 
+            background: #21262d; 
+            padding: 14px 18px; 
+            border-radius: 12px; 
+            font-size: 0.9rem; 
+            border: 1px solid #30363d; 
+            max-width: 82%; 
+            position: relative;
+        }
+        .self-bubble { 
+            background: var(--accent); 
+            color: var(--bg); 
+            align-self: flex-end; 
+            border-color: var(--accent); 
+            border-bottom-right-radius: 4px;
+        }
+        .bubble small {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.7rem;
+            opacity: 0.75;
+            text-align: right;
+        }
+
+        /* Right: The Office/Canvas */
+        #canvas { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 30px; 
+            position: relative; 
+        }
+        .canvas-tools { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 20px; 
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        #doc-id { 
+            font-family: monospace; 
+            font-size: 0.75rem; 
+            opacity: 0.6; 
+            background: #21262d; 
+            padding: 6px 12px; 
+            border-radius: 6px;
+        }
+        #connection-status {
+            font-size: 0.8rem;
+            padding: 6px 16px;
+            background: #21262d;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+        }
+        #editor { 
+            flex: 1; 
+            background: #0d1117; 
+            color: var(--text); 
+            border: 1px solid #30363d; 
+            border-radius: 12px; 
+            padding: 40px; 
+            font-size: 1.15rem; 
+            line-height: 1.75; 
+            outline: none; 
+            resize: none; 
+            font-family: 'Times New Roman', Georgia, serif;
+            box-shadow: inset 0 4px 20px rgba(0,0,0,0.4);
+        }
+        
+        /* The "Official" Seal */
+        #seal { 
+            display: none; 
+            position: absolute; 
+            top: 80px; 
+            right: 80px; 
+            transform: rotate(14deg); 
+            border: 6px solid var(--danger); 
+            color: var(--danger); 
+            padding: 14px 28px; 
+            font-weight: 800; 
+            font-family: monospace; 
+            font-size: 1.1rem; 
+            letter-spacing: 3px; 
+            opacity: 0.85; 
+            pointer-events: none; 
+            box-shadow: 0 0 30px rgba(248, 81, 73, 0.4);
+            animation: sealPulse 4s infinite ease-in-out;
+        }
+        @keyframes sealPulse {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 0.6; }
+        }
+
+        input { 
+            background: #0d1117; 
+            border: 1px solid #30363d; 
+            color: white; 
+            padding: 14px; 
+            margin: 0 20px 20px; 
+            border-radius: 8px; 
+            font-size: 1rem;
+        }
+        .btn { 
+            cursor: pointer; 
+            padding: 10px 20px; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            border: 1px solid #30363d; 
+            background: #21262d; 
+            color: var(--text); 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2); }
+        .btn-lock { 
+            background: var(--danger); 
+            color: white; 
+            border: none; 
+        }
+        .btn-lock:disabled { 
+            opacity: 0.4; 
+            cursor: not-allowed; 
+            transform: none;
+        }
+
+        /* Responsive — Global first (mobile + tablet) */
+        @media (max-width: 1024px) {
+            #stream { width: 320px; }
+        }
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            #stream { 
+                width: 100%; 
+                height: 42vh; 
+                border-right: none; 
+                border-bottom: 2px solid #30363d; 
+                max-height: 42vh;
+            }
+            #canvas { padding: 20px 15px; }
+            .canvas-tools { flex-direction: column; align-items: stretch; gap: 12px; }
+            #seal { top: 40px; right: 40px; transform: rotate(12deg); font-size: 1rem; padding: 10px 20px; }
+            #editor { padding: 25px; font-size: 1.05rem; }
+        }
+        @media (max-width: 480px) {
+            #stream { height: 38vh; }
+            .bubble { max-width: 90%; }
+        }
     </style>
 </head>
 <body>
 
-    <div id="chat-pane">
-        <div class="pane-title">DIRECT_LINE // SECURE</div>
-        <div id="messages"></div>
-        <input type="text" id="chatInput" placeholder="Message..." style="background:#2a3942; border:none; padding:15px; color:white; outline:none;">
+    <div id="stream">
+        <div class="stream-header">DIRECT_NEGOTIATION_STREAM</div>
+        <div id="chat-box"></div>
+        <input type="text" id="chatInput" placeholder="Quick global chat... (press Enter)">
     </div>
 
-    <div id="doc-pane">
-        <div class="btn-group">
-            <button class="btn" onclick="activateSignature()">✍️ Add Signature</button>
-            <button id="lockBtn" class="btn" style="background:#f1592a" onclick="lockRecord()" disabled>🔒 Seal Official Record</button>
+    <div id="canvas">
+        <div class="canvas-tools">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span id="doc-id">DRAFT_STAGED • GLOBAL-FIRST-v1.0</span>
+                <span id="connection-status">🟢 CONNECTED • GLOBAL READY</span>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="copyContent()">📋 Copy Draft</button>
+                <button class="btn" onclick="suggestAI()">🤖 Global AI Tip</button>
+                <button id="lockBtn" class="btn btn-lock" onclick="lockProtocol()">🔒 FINALIZE &amp; SEAL RECORD</button>
+            </div>
         </div>
-        
-        <div id="watermark">OFFICIAL</div>
-        <textarea id="editor" placeholder="Draft your official communication..."></textarea>
-        
-        <div id="sig-canvas-container">
-            <div style="font-size: 0.6rem; padding: 5px; color: var(--accent);">SIGN_WITH_PEN_OR_FINGER</div>
-            <canvas id="sig-canvas"></canvas>
-            <button onclick="clearSig()" style="position:absolute; bottom:-25px; right:0; background:none; border:none; color:white; font-size:0.7rem; cursor:pointer;">Clear</button>
-        </div>
+        <div id="seal">OFFICIAL_LOCKED • UNIQUE GLOBAL SEAL</div>
+        <textarea id="editor" spellcheck="true" placeholder="Your official global negotiation document starts here...&#10;&#10;Robust. Unique. First of its kind."></textarea>
     </div>
 
     <script>
-        const socket = io();
+        // ==================== CORE ELEMENTS ====================
+        const socket = io(); // Connects to your server.js
         const editor = document.getElementById('editor');
-        const canvas = document.getElementById('sig-canvas');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
+        const chatBox = document.getElementById('chat-box');
+        const chatInput = document.getElementById('chatInput');
+        const lockBtn = document.getElementById('lockBtn');
+        const seal = document.getElementById('seal');
+        const docIdEl = document.getElementById('doc-id');
+        const statusEl = document.getElementById('connection-status');
 
-        // --- Socket Logic ---
-        socket.on('sync-all', (state) => {
-            editor.value = state.doc;
-            if (state.locked) applyLock(state.sigData);
+        // ==================== REAL-TIME SERVER SYNC ====================
+        
+        // 1. Initial Handshake
+        socket.on('init-vault', (vault) => {
+            editor.value = vault.activeDoc.body;
+            chatBox.innerHTML = ''; // Clear and rebuild
+            vault.chatStream.forEach(msg => appendChatUI(msg));
+            if (vault.activeDoc.isLocked) {
+                applyLockUI(vault.activeDoc.fingerprint);
+            }
         });
 
-        // --- Smart Pen / Finger Drawing Logic ---
-        function activateSignature() {
-            document.getElementById('sig-canvas-container').style.display = 'block';
-            document.getElementById('lockBtn').disabled = false;
-            // Set internal resolution to match display size
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
+        // 2. Chat Sync
+        socket.on('new-entry', (msg) => {
+            appendChatUI(msg);
+        });
 
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            return {
-                x: (e.clientX || e.touches[0].clientX) - rect.left,
-                y: (e.clientY || e.touches[0].clientY) - rect.top
-            };
-        }
+        // 3. Document Sync
+        socket.on('sync-draft', (content) => {
+            editor.value = content;
+        });
 
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('touchstart', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchmove', draw);
-        window.addEventListener('mouseup', () => drawing = false);
+        // 4. Lock Protocol Sync
+        socket.on('vault-sealed', (doc) => {
+            applyLockUI(doc.fingerprint);
+        });
 
-        function startDraw(e) { drawing = true; draw(e); }
-        function draw(e) {
-            if (!drawing) return;
-            const pos = getPos(e);
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#00a884';
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }
+        // ==================== USER ACTIONS ====================
 
-        function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-
-        // --- Finalization Logic ---
-        function lockRecord() {
-            const sigData = canvas.toDataURL(); // Capture signature as image
-            socket.emit('seal-record', { body: editor.value, sig: sigData });
-        }
-
-        socket.on('record-sealed', (data) => applyLock(data.sig));
-
-        function applyLock(sigImg) {
-            editor.readOnly = true;
-            document.getElementById('sig-canvas-container').style.display = 'block';
-            document.getElementById('sig-canvas-container').style.border = 'none';
-            document.getElementById('sig-canvas-container').style.background = 'none';
-            
-            // Convert canvas to static image of signature
-            const img = new Image();
-            img.src = sigImg;
-            img.style.width = "100%";
-            document.getElementById('sig-canvas-container').innerHTML = '';
-            document.getElementById('sig-canvas-container').appendChild(img);
-            
-            document.getElementById('watermark').style.display = 'block';
-            document.getElementById('lockBtn').innerText = "RECORD_SEALED";
-            document.getElementById('lockBtn').disabled = true;
-        }
-
-        // --- Standard Chat/Draft Sync ---
+        // Chat Input
         chatInput.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') { socket.emit('chat', chatInput.value); chatInput.value = ''; }
+            if (e.key === 'Enter' && chatInput.value.trim()) {
+                socket.emit('message', chatInput.value.trim());
+                chatInput.value = '';
+            }
         });
-        socket.on('chat-new', text => {
-            const div = document.createElement('div');
-            div.className = 'bubble';
-            div.innerText = text;
-            document.getElementById('messages').appendChild(div);
+
+        // Editor Live Update
+        editor.addEventListener('input', () => {
+            socket.emit('update-draft', editor.value);
         });
+
+        // Finalize Protocol
+        function lockProtocol() {
+            if (editor.value.trim().length < 30) {
+                alert("❌ Draft too short for official global record.");
+                return;
+            }
+            if (confirm("🔒 FINAL GLOBAL SEAL\nProceed to cryptographically lock this record?")) {
+                socket.emit('trigger-lock');
+            }
+        }
+
+        // ==================== UI HELPERS ====================
+
+        function appendChatUI(msg) {
+            const isSelf = msg.senderId === socket.id;
+            const bubble = document.createElement('div');
+            bubble.className = `bubble ${isSelf ? 'self-bubble' : ''}`;
+            bubble.innerHTML = `
+                ${msg.text}
+                <small>${msg.time || new Date().toLocaleTimeString()}</small>
+            `;
+            chatBox.appendChild(bubble);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function applyLockUI(fingerprint) {
+            editor.readOnly = true;
+            editor.style.background = "#161b22";
+            lockBtn.disabled = true;
+            lockBtn.innerHTML = "✅ RECORD SEALED • UNIQUE";
+            seal.style.display = 'block';
+            docIdEl.innerText = fingerprint;
+            docIdEl.style.color = '#f85149';
+        }
+
+        function copyContent() {
+            navigator.clipboard.writeText(editor.value);
+            alert("Draft copied to clipboard.");
+        }
+
+        function suggestAI() {
+            const tips = ["Governing Law: International Arbitration", "Mutual Non-Disclosure Clause", "Reference Nairobi Time (EAT)"];
+            const tip = tips[Math.floor(Math.random() * tips.length)];
+            if(confirm("AI Suggestion: " + tip + "\nInsert?")) {
+                editor.value += "\n\n" + tip;
+                socket.emit('update-draft', editor.value);
+            }
+        }
+
+        // Connection Monitoring
+        socket.on('connect', () => { statusEl.innerHTML = "🟢 CONNECTED • GLOBAL READY"; });
+        socket.on('disconnect', () => { statusEl.innerHTML = "🔴 OFFLINE • RECONNECTING..."; });
     </script>
 </body>
 </html>
