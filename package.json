@@ -10,21 +10,18 @@
   },
   "scripts": {
     "start": "node server.js",
-    "clean": "rm -f workspace_state.json"
+    "clean": "rm -f vault_storage.json"
   },
   "dependencies": {
     "express": "^4.18.2",
     "socket.io": "^4.7.2",
-    "lowdb": "^1.0.0",
-    "nodemailer": "^6.9.7",
-    "dotenv": "^16.3.1",
     "chalk": "^4.1.2"
   },
   "keywords": [
     "collaboration",
     "real-time",
     "document-locking",
-    "communication-os",
+    "global-first",
     "workspace"
   ]
 }
