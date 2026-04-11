@@ -1,4 +1,4 @@
-{{
+{
   "name": "comm-os-unified",
   "version": "1.2.0",
   "description": "Communication OS - A unified workspace for real-time chat, official documentation, and immutable records.",
@@ -10,7 +10,6 @@
   },
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js",
     "clean": "rm -f workspace_state.json"
   },
   "dependencies": {
@@ -20,9 +19,6 @@
     "nodemailer": "^6.9.7",
     "dotenv": "^16.3.1",
     "chalk": "^4.1.2"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.1"
   },
   "keywords": [
     "collaboration",
