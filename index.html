@@ -3,347 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Comm-OS Global First & Unique Terminal — Robust, offline-first, real-time negotiation vault for worldwide official records.">
-    <title>Comm-OS | Terminal — GLOBAL FIRST &amp; UNIQUE</title>
+    <title>Comm-OS | Global</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { 
-            --bg: #0d1117; 
-            --panel: #161b22; 
-            --accent: #58a6ff; 
-            --danger: #f85149; 
-            --text: #c9d1d9; 
-        }
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
-            background: var(--bg); 
-            color: var(--text); 
-            display: flex; 
-            height: 100vh; 
-            overflow: hidden; 
-        }
+        :root { --bg: #0b141a; --header: #202c33; --accent: #00a884; --text: #e9edef; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; }
         
-        /* Left: Casual Stream */
-        #stream { 
-            width: 360px; 
-            border-right: 1px solid #30363d; 
-            display: flex; 
-            flex-direction: column; 
-            background: var(--panel); 
-            box-shadow: 2px 0 8px rgba(0,0,0,0.3);
-        }
-        .stream-header { 
-            padding: 16px 20px; 
-            border-bottom: 1px solid #30363d; 
-            font-size: 0.8rem; 
-            font-weight: 700; 
-            letter-spacing: 1.5px; 
-            color: var(--accent); 
-            display: flex; 
-            align-items: center; 
-            gap: 8px;
-        }
-        .stream-header::after {
-            content: "🌍 GLOBAL FIRST v1.0 • UNIQUE";
-            font-size: 0.65rem;
-            background: #21262d;
-            padding: 2px 8px;
-            border-radius: 9999px;
-            color: #fff;
-            font-weight: 500;
-        }
-        #chat-box { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            scrollbar-width: thin;
-        }
-        .bubble { 
-            background: #21262d; 
-            padding: 14px 18px; 
-            border-radius: 12px; 
-            font-size: 0.9rem; 
-            border: 1px solid #30363d; 
-            max-width: 82%; 
-            position: relative;
-        }
-        .self-bubble { 
-            background: var(--accent); 
-            color: var(--bg); 
-            align-self: flex-end; 
-            border-color: var(--accent); 
-            border-bottom-right-radius: 4px;
-        }
-        .bubble small {
-            display: block;
-            margin-top: 8px;
-            font-size: 0.7rem;
-            opacity: 0.75;
-            text-align: right;
-        }
-
-        /* Right: The Office/Canvas */
-        #canvas { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            padding: 30px; 
-            position: relative; 
-        }
-        .canvas-tools { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 20px; 
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        #doc-id { 
-            font-family: monospace; 
-            font-size: 0.75rem; 
-            opacity: 0.6; 
-            background: #21262d; 
-            padding: 6px 12px; 
-            border-radius: 6px;
-        }
-        #connection-status {
-            font-size: 0.8rem;
-            padding: 6px 16px;
-            background: #21262d;
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-weight: 500;
-        }
-        #editor { 
-            flex: 1; 
-            background: #0d1117; 
-            color: var(--text); 
-            border: 1px solid #30363d; 
-            border-radius: 12px; 
-            padding: 40px; 
-            font-size: 1.15rem; 
-            line-height: 1.75; 
-            outline: none; 
-            resize: none; 
-            font-family: 'Times New Roman', Georgia, serif;
-            box-shadow: inset 0 4px 20px rgba(0,0,0,0.4);
-        }
+        /* AUTH MODAL */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .auth-card { background: var(--header); padding: 40px; border-radius: 8px; text-align: center; width: 90%; max-width: 400px; }
         
-        /* The "Official" Seal */
-        #seal { 
-            display: none; 
-            position: absolute; 
-            top: 80px; 
-            right: 80px; 
-            transform: rotate(14deg); 
-            border: 6px solid var(--danger); 
-            color: var(--danger); 
-            padding: 14px 28px; 
-            font-weight: 800; 
-            font-family: monospace; 
-            font-size: 1.1rem; 
-            letter-spacing: 3px; 
-            opacity: 0.85; 
-            pointer-events: none; 
-            box-shadow: 0 0 30px rgba(248, 81, 73, 0.4);
-            animation: sealPulse 4s infinite ease-in-out;
-        }
-        @keyframes sealPulse {
-            0%, 100% { opacity: 0.85; }
-            50% { opacity: 0.6; }
-        }
+        /* MAIN LAYOUT */
+        #main-app { display: none; height: 100vh; grid-template-columns: 350px 1fr; }
+        
+        /* WHATSAPP SIDEBAR */
+        #sidebar { background: #111b21; border-right: 1px solid #222d34; display: flex; flex-direction: column; }
+        .header { background: var(--header); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
+        #chat-list { flex: 1; overflow-y: auto; }
+        .msg { padding: 8px 15px; margin: 4px 15px; border-radius: 8px; background: #202c33; font-size: 0.9rem; align-self: flex-start; max-width: 80%; }
+        .doc-link { color: var(--accent); cursor: pointer; text-decoration: underline; display: block; margin-top: 5px; font-weight: bold; }
 
-        input { 
-            background: #0d1117; 
-            border: 1px solid #30363d; 
-            color: white; 
-            padding: 14px; 
-            margin: 0 20px 20px; 
-            border-radius: 8px; 
-            font-size: 1rem;
-        }
-        .btn { 
-            cursor: pointer; 
-            padding: 10px 20px; 
-            border-radius: 8px; 
-            font-weight: 600; 
-            border: 1px solid #30363d; 
-            background: #21262d; 
-            color: var(--text); 
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(88, 166, 255, 0.2); }
-        .btn-lock { 
-            background: var(--danger); 
-            color: white; 
-            border: none; 
-        }
-        .btn-lock:disabled { 
-            opacity: 0.4; 
-            cursor: not-allowed; 
-            transform: none;
-        }
-
-        /* Responsive — Global first (mobile + tablet) */
-        @media (max-width: 1024px) {
-            #stream { width: 320px; }
-        }
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            #stream { 
-                width: 100%; 
-                height: 42vh; 
-                border-right: none; 
-                border-bottom: 2px solid #30363d; 
-                max-height: 42vh;
-            }
-            #canvas { padding: 20px 15px; }
-            .canvas-tools { flex-direction: column; align-items: stretch; gap: 12px; }
-            #seal { top: 40px; right: 40px; transform: rotate(12deg); font-size: 1rem; padding: 10px 20px; }
-            #editor { padding: 25px; font-size: 1.05rem; }
-        }
-        @media (max-width: 480px) {
-            #stream { height: 38vh; }
-            .bubble { max-width: 90%; }
-        }
+        /* HIDDEN EDITOR PANE */
+        #editor-pane { background: var(--bg); display: none; flex-direction: column; padding: 20px; transition: 0.3s; }
+        #editor { flex: 1; background: transparent; border: 1px solid #222d34; color: white; padding: 40px; font-size: 1.1rem; border-radius: 8px; outline: none; resize: none; }
+        
+        .btn { background: var(--accent); border: none; padding: 10px 20px; border-radius: 5px; color: #0b141a; font-weight: bold; cursor: pointer; }
+        .logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.7rem; }
     </style>
 </head>
 <body>
 
-    <div id="stream">
-        <div class="stream-header">DIRECT_NEGOTIATION_STREAM</div>
-        <div id="chat-box"></div>
-        <input type="text" id="chatInput" placeholder="Quick global chat... (press Enter)">
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h1 style="color: var(--accent)">Comm-OS</h1>
+            <p>Global Authentication</p>
+            <input type="tel" id="phoneInput" placeholder="+ (Any Global Number)" style="width:100%; padding:15px; margin-bottom:20px; border-radius:5px; border:none;">
+            <button class="btn" style="width:100%" onclick="login()">Enter Vault</button>
+        </div>
     </div>
 
-    <div id="canvas">
-        <div class="canvas-tools">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <span id="doc-id">DRAFT_STAGED • GLOBAL-FIRST-v1.0</span>
-                <span id="connection-status">🟢 CONNECTED • GLOBAL READY</span>
+    <div id="main-app">
+        <div id="sidebar">
+            <div class="header">
+                <span id="user-display" style="font-size: 0.8rem;"></span>
+                <button class="logout-btn" onclick="location.reload()">LOGOUT</button>
             </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn" onclick="copyContent()">📋 Copy Draft</button>
-                <button class="btn" onclick="suggestAI()">🤖 Global AI Tip</button>
-                <button id="lockBtn" class="btn btn-lock" onclick="lockProtocol()">🔒 FINALIZE &amp; SEAL RECORD</button>
+            <div id="chat-list">
+                <div style="padding: 20px; opacity: 0.5; font-size: 0.8rem;">SYSTEM: Click a document link to open the editor.</div>
+            </div>
+            <div style="padding: 15px;">
+                <input type="text" id="chatInput" placeholder="Type a message..." style="width:100%; padding:12px; background:#2a3942; border:none; color:white; border-radius:8px;">
             </div>
         </div>
-        <div id="seal">OFFICIAL_LOCKED • UNIQUE GLOBAL SEAL</div>
-        <textarea id="editor" spellcheck="true" placeholder="Your official global negotiation document starts here...&#10;&#10;Robust. Unique. First of its kind."></textarea>
+
+        <div id="editor-pane">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 id="current-doc-title">Document Editor</h3>
+                <button id="lockBtn" class="btn" style="background:#f1592a" onclick="sealDoc()">🔒 SEAL RECORD</button>
+            </div>
+            <textarea id="editor"></textarea>
+        </div>
     </div>
 
     <script>
-        // ==================== CORE ELEMENTS ====================
-        const socket = io(); // Connects to your server.js
-        const editor = document.getElementById('editor');
-        const chatBox = document.getElementById('chat-box');
-        const chatInput = document.getElementById('chatInput');
-        const lockBtn = document.getElementById('lockBtn');
-        const seal = document.getElementById('seal');
-        const docIdEl = document.getElementById('doc-id');
-        const statusEl = document.getElementById('connection-status');
+        const socket = io();
+        let activeDocId = null;
+        let myPhone = "";
 
-        // ==================== REAL-TIME SERVER SYNC ====================
-        
-        // 1. Initial Handshake
+        // AUTH LOGIC
+        function login() {
+            myPhone = document.getElementById('phoneInput').value;
+            if(!myPhone) return alert("Enter any phone number");
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('main-app').style.display = 'grid';
+            document.getElementById('user-display').innerText = myPhone;
+            socket.emit('auth-global', myPhone);
+        }
+
+        // INIT VAULT
         socket.on('init-vault', (vault) => {
-            editor.value = vault.activeDoc.body;
-            chatBox.innerHTML = ''; // Clear and rebuild
-            vault.chatStream.forEach(msg => appendChatUI(msg));
-            if (vault.activeDoc.isLocked) {
-                applyLockUI(vault.activeDoc.fingerprint);
-            }
+            // Load messages including simulated doc links
+            Object.keys(vault.documents).forEach(id => {
+                appendMsg({ text: `Collaborative Doc Shared: ${id}`, docId: id });
+            });
         });
 
-        // 2. Chat Sync
-        socket.on('new-entry', (msg) => {
-            appendChatUI(msg);
-        });
-
-        // 3. Document Sync
-        socket.on('sync-draft', (content) => {
-            editor.value = content;
-        });
-
-        // 4. Lock Protocol Sync
-        socket.on('vault-sealed', (doc) => {
-            applyLockUI(doc.fingerprint);
-        });
-
-        // ==================== USER ACTIONS ====================
-
-        // Chat Input
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && chatInput.value.trim()) {
-                socket.emit('message', chatInput.value.trim());
+        // CHAT LOGIC
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') {
+                socket.emit('message', { text: chatInput.value, sender: myPhone });
                 chatInput.value = '';
             }
         });
 
-        // Editor Live Update
-        editor.addEventListener('input', () => {
-            socket.emit('update-draft', editor.value);
+        socket.on('new-entry', appendMsg);
+
+        function appendMsg(msg) {
+            const d = document.createElement('div');
+            d.className = 'msg';
+            d.innerHTML = `<div>${msg.text}</div>`;
+            if(msg.docId) {
+                d.innerHTML += `<span class="doc-link" onclick="openDoc('${msg.docId}')">Open ${msg.docId}</span>`;
+            }
+            document.getElementById('chat-list').appendChild(d);
+        }
+
+        // EDITOR LOGIC (The Reveal)
+        function openDoc(id) {
+            activeDocId = id;
+            document.getElementById('editor-pane').style.display = 'flex';
+            document.getElementById('current-doc-title').innerText = `Editing: ${id}`;
+            // Fetch content from local storage or ask server (simplified here)
+            socket.emit('request-doc', id);
+        }
+
+        socket.on('sync-doc', (data) => {
+            if(activeDocId === data.id) document.getElementById('editor').value = data.body;
         });
 
-        // Finalize Protocol
-        function lockProtocol() {
-            if (editor.value.trim().length < 30) {
-                alert("❌ Draft too short for official global record.");
-                return;
+        document.getElementById('editor').addEventListener('input', (e) => {
+            socket.emit('update-doc', { id: activeDocId, body: e.target.value });
+        });
+
+        function sealDoc() {
+            if(confirm("Seal this document globally?")) socket.emit('trigger-lock', activeDocId);
+        }
+
+        socket.on('vault-sealed', (data) => {
+            if(activeDocId === data.id) {
+                document.getElementById('editor').readOnly = true;
+                document.getElementById('lockBtn').innerText = "SEALED";
+                document.getElementById('lockBtn').disabled = true;
             }
-            if (confirm("🔒 FINAL GLOBAL SEAL\nProceed to cryptographically lock this record?")) {
-                socket.emit('trigger-lock');
-            }
-        }
-
-        // ==================== UI HELPERS ====================
-
-        function appendChatUI(msg) {
-            const isSelf = msg.senderId === socket.id;
-            const bubble = document.createElement('div');
-            bubble.className = `bubble ${isSelf ? 'self-bubble' : ''}`;
-            bubble.innerHTML = `
-                ${msg.text}
-                <small>${msg.time || new Date().toLocaleTimeString()}</small>
-            `;
-            chatBox.appendChild(bubble);
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-
-        function applyLockUI(fingerprint) {
-            editor.readOnly = true;
-            editor.style.background = "#161b22";
-            lockBtn.disabled = true;
-            lockBtn.innerHTML = "✅ RECORD SEALED • UNIQUE";
-            seal.style.display = 'block';
-            docIdEl.innerText = fingerprint;
-            docIdEl.style.color = '#f85149';
-        }
-
-        function copyContent() {
-            navigator.clipboard.writeText(editor.value);
-            alert("Draft copied to clipboard.");
-        }
-
-        function suggestAI() {
-            const tips = ["Governing Law: International Arbitration", "Mutual Non-Disclosure Clause", "Reference Nairobi Time (EAT)"];
-            const tip = tips[Math.floor(Math.random() * tips.length)];
-            if(confirm("AI Suggestion: " + tip + "\nInsert?")) {
-                editor.value += "\n\n" + tip;
-                socket.emit('update-draft', editor.value);
-            }
-        }
-
-        // Connection Monitoring
-        socket.on('connect', () => { statusEl.innerHTML = "🟢 CONNECTED • GLOBAL READY"; });
-        socket.on('disconnect', () => { statusEl.innerHTML = "🔴 OFFLINE • RECONNECTING..."; });
+        });
     </script>
 </body>
 </html>
