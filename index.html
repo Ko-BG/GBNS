@@ -2,140 +2,184 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comm-OS | Global</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Comm-OS | Global Terminal</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
-        :root { --bg: #0b141a; --header: #202c33; --accent: #00a884; --text: #e9edef; }
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); height: 100vh; }
+        :root { --bg: #0b141a; --header: #202c33; --accent: #00a884; --text: #e9edef; --panel: #111b21; }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', Helvetica, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
         
-        /* AUTH MODAL */
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .auth-card { background: var(--header); padding: 40px; border-radius: 8px; text-align: center; width: 90%; max-width: 400px; }
+        /* AUTH OVERLAY */
+        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .auth-card { background: var(--header); padding: 40px; border-radius: 12px; text-align: center; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         
-        /* MAIN LAYOUT */
+        /* LAYOUT */
         #main-app { display: none; height: 100vh; grid-template-columns: 350px 1fr; }
         
-        /* WHATSAPP SIDEBAR */
-        #sidebar { background: #111b21; border-right: 1px solid #222d34; display: flex; flex-direction: column; }
-        .header { background: var(--header); padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; }
-        #chat-list { flex: 1; overflow-y: auto; }
-        .msg { padding: 8px 15px; margin: 4px 15px; border-radius: 8px; background: #202c33; font-size: 0.9rem; align-self: flex-start; max-width: 80%; }
-        .doc-link { color: var(--accent); cursor: pointer; text-decoration: underline; display: block; margin-top: 5px; font-weight: bold; }
+        /* SIDEBAR (WhatsApp/Telegram Style) */
+        #sidebar { background: var(--panel); border-right: 1px solid #222d34; display: flex; flex-direction: column; }
+        .sidebar-header { background: var(--header); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        #chat-stream { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { background: #202c33; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; align-self: flex-start; max-width: 85%; }
+        .doc-card { border-left: 4px solid var(--accent); cursor: pointer; background: #182229; padding: 10px; border-radius: 4px; margin-top: 5px; }
 
-        /* HIDDEN EDITOR PANE */
-        #editor-pane { background: var(--bg); display: none; flex-direction: column; padding: 20px; transition: 0.3s; }
-        #editor { flex: 1; background: transparent; border: 1px solid #222d34; color: white; padding: 40px; font-size: 1.1rem; border-radius: 8px; outline: none; resize: none; }
+        /* EDITOR (Outlook/Word/iSign Style) */
+        #editor-pane { background: var(--bg); display: none; flex-direction: column; padding: 30px; position: relative; }
+        #editor { flex: 1; background: transparent; color: white; border: 1px solid #222d34; padding: 40px; font-size: 1.15rem; line-height: 1.8; font-family: 'Georgia', serif; outline: none; resize: none; border-radius: 8px; }
         
-        .btn { background: var(--accent); border: none; padding: 10px 20px; border-radius: 5px; color: #0b141a; font-weight: bold; cursor: pointer; }
-        .logout-btn { background: transparent; border: 1px solid #ef4444; color: #ef4444; font-size: 0.7rem; }
+        /* SIGNATURE BOX (iSignPDF Logic) */
+        #signature-overlay { 
+            position: absolute; bottom: 80px; right: 80px; width: 320px; 
+            background: #fff; border-radius: 8px; display: none; flex-direction: column; 
+            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        }
+        #sig-canvas { background: white; touch-action: none; cursor: crosshair; border-radius: 8px 8px 0 0; }
+        .sig-tools { display: flex; justify-content: space-between; padding: 10px; background: #f0f0f0; border-radius: 0 0 8px 8px; }
+
+        .btn { padding: 10px 20px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; }
+        .btn-accent { background: var(--accent); color: white; }
+        .btn-danger { background: #ef4444; color: white; }
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
         <div class="auth-card">
-            <h1 style="color: var(--accent)">Comm-OS</h1>
-            <p>Global Authentication</p>
-            <input type="tel" id="phoneInput" placeholder="+ (Any Global Number)" style="width:100%; padding:15px; margin-bottom:20px; border-radius:5px; border:none;">
-            <button class="btn" style="width:100%" onclick="login()">Enter Vault</button>
+            <h2 style="color: var(--accent); margin-bottom: 5px;">Comm-OS</h2>
+            <p style="font-size: 0.8rem; margin-bottom: 25px;">Global Secure Access</p>
+            <input type="tel" id="phoneInput" placeholder="Enter Global Phone Number" style="width:100%; padding:15px; background:#2a3942; border:none; color:white; border-radius:8px; margin-bottom:20px;">
+            <button class="btn btn-accent" style="width:100%" onclick="login()">AUTHENTICATE</button>
         </div>
     </div>
 
     <div id="main-app">
         <div id="sidebar">
-            <div class="header">
-                <span id="user-display" style="font-size: 0.8rem;"></span>
-                <button class="logout-btn" onclick="location.reload()">LOGOUT</button>
+            <div class="sidebar-header">
+                <span id="user-info">Node: Global</span>
+                <button onclick="location.reload()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.7rem;">LOGOUT</button>
             </div>
-            <div id="chat-list">
-                <div style="padding: 20px; opacity: 0.5; font-size: 0.8rem;">SYSTEM: Click a document link to open the editor.</div>
-            </div>
+            <div id="chat-stream"></div>
             <div style="padding: 15px;">
-                <input type="text" id="chatInput" placeholder="Type a message..." style="width:100%; padding:12px; background:#2a3942; border:none; color:white; border-radius:8px;">
+                <input type="text" id="chatInput" placeholder="Type message..." style="width:100%; padding:12px; background:#2a3942; border:none; border-radius:8px; color:white; outline:none;">
             </div>
         </div>
 
         <div id="editor-pane">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 id="current-doc-title">Document Editor</h3>
-                <button id="lockBtn" class="btn" style="background:#f1592a" onclick="sealDoc()">🔒 SEAL RECORD</button>
+                <h3 id="active-title">Document Workspace</h3>
+                <button id="lockBtn" class="btn btn-accent" onclick="showSignature()">✍️ SIGN & SEAL</button>
             </div>
-            <textarea id="editor"></textarea>
+            
+            <textarea id="editor" placeholder="Drafting official communication..."></textarea>
+
+            <div id="signature-overlay">
+                <canvas id="sig-canvas" width="320" height="180"></canvas>
+                <div class="sig-tools">
+                    <button onclick="clearSig()" style="background:none; border:none; color:#666; font-size:0.7rem;">Clear</button>
+                    <button class="btn btn-accent" onclick="confirmSignature()" style="padding:5px 15px; font-size:0.7rem;">APPLY SIGNATURE</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
         const socket = io();
-        let activeDocId = null;
         let myPhone = "";
+        let currentDocId = null;
+        let isLocked = false;
 
-        // AUTH LOGIC
+        // AUTH
         function login() {
             myPhone = document.getElementById('phoneInput').value;
-            if(!myPhone) return alert("Enter any phone number");
+            if(!myPhone) return;
             document.getElementById('auth-overlay').style.display = 'none';
             document.getElementById('main-app').style.display = 'grid';
-            document.getElementById('user-display').innerText = myPhone;
+            document.getElementById('user-info').innerText = myPhone;
             socket.emit('auth-global', myPhone);
         }
 
-        // INIT VAULT
-        socket.on('init-vault', (vault) => {
-            // Load messages including simulated doc links
-            Object.keys(vault.documents).forEach(id => {
-                appendMsg({ text: `Collaborative Doc Shared: ${id}`, docId: id });
-            });
-        });
+        // CHAT -> EDITOR PIVOT
+        function openDocument(id) {
+            currentDocId = id;
+            document.getElementById('editor-pane').style.display = 'flex';
+            document.getElementById('active-title').innerText = `Record: ${id}`;
+            socket.emit('request-doc', id);
+        }
 
         // CHAT LOGIC
-        document.getElementById('chatInput').addEventListener('keypress', (e) => {
-            if(e.key === 'Enter') {
+        const chatInput = document.getElementById('chatInput');
+        chatInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter' && chatInput.value) {
                 socket.emit('message', { text: chatInput.value, sender: myPhone });
                 chatInput.value = '';
             }
         });
 
-        socket.on('new-entry', appendMsg);
-
-        function appendMsg(msg) {
-            const d = document.createElement('div');
-            d.className = 'msg';
-            d.innerHTML = `<div>${msg.text}</div>`;
-            if(msg.docId) {
-                d.innerHTML += `<span class="doc-link" onclick="openDoc('${msg.docId}')">Open ${msg.docId}</span>`;
+        socket.on('new-entry', (msg) => {
+            const b = document.createElement('div');
+            b.className = 'bubble';
+            b.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
+            if(msg.text.includes("DOC-")) {
+                const id = "DOC-X-" + Math.floor(Math.random()*100);
+                b.innerHTML += `<div class="doc-card" onclick="openDocument('${id}')">📄 Open Collaborative Record ${id}</div>`;
             }
-            document.getElementById('chat-list').appendChild(d);
-        }
-
-        // EDITOR LOGIC (The Reveal)
-        function openDoc(id) {
-            activeDocId = id;
-            document.getElementById('editor-pane').style.display = 'flex';
-            document.getElementById('current-doc-title').innerText = `Editing: ${id}`;
-            // Fetch content from local storage or ask server (simplified here)
-            socket.emit('request-doc', id);
-        }
-
-        socket.on('sync-doc', (data) => {
-            if(activeDocId === data.id) document.getElementById('editor').value = data.body;
+            document.getElementById('chat-stream').appendChild(b);
+            document.getElementById('chat-stream').scrollTop = document.getElementById('chat-stream').scrollHeight;
         });
 
-        document.getElementById('editor').addEventListener('input', (e) => {
-            socket.emit('update-doc', { id: activeDocId, body: e.target.value });
-        });
+        // iSignPDF CANVAS LOGIC
+        const canvas = document.getElementById('sig-canvas');
+        const ctx = canvas.getContext('2d');
+        let drawing = false;
 
-        function sealDoc() {
-            if(confirm("Seal this document globally?")) socket.emit('trigger-lock', activeDocId);
+        function showSignature() { document.getElementById('signature-overlay').style.display = 'flex'; }
+        function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); }
+
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', () => drawing = false);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+
+        function startDraw(e) { drawing = true; ctx.beginPath(); ctx.moveTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top); }
+        function draw(e) {
+            if(!drawing) return;
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+            ctx.lineTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
+            ctx.stroke();
+        }
+
+        function confirmSignature() {
+            const sigData = canvas.toDataURL(); // Encodes drawing as image
+            if(confirm("Apply this biometric signature to the document?")) {
+                socket.emit('seal-with-signature', { id: currentDocId, body: document.getElementById('editor').value, sig: sigData });
+            }
         }
 
         socket.on('vault-sealed', (data) => {
-            if(activeDocId === data.id) {
-                document.getElementById('editor').readOnly = true;
-                document.getElementById('lockBtn').innerText = "SEALED";
-                document.getElementById('lockBtn').disabled = true;
-            }
+            document.getElementById('signature-overlay').style.display = 'none';
+            document.getElementById('editor').readOnly = true;
+            document.getElementById('lockBtn').innerText = "✅ RECORD SIGNED";
+            document.getElementById('lockBtn').disabled = true;
+            
+            // Visual Signature Placement
+            const img = new Image();
+            img.src = data.sig;
+            img.style.position = "absolute";
+            img.style.bottom = "50px";
+            img.style.right = "50px";
+            img.style.borderBottom = "2px solid black";
+            document.getElementById('editor-pane').appendChild(img);
         });
+
+        // SYNC DRAFTS
+        document.getElementById('editor').addEventListener('input', (e) => {
+            socket.emit('update-doc', { id: currentDocId, body: e.target.value });
+        });
+        socket.on('sync-doc', (data) => { if(data.id === currentDocId) document.getElementById('editor').value = data.body; });
     </script>
 </body>
 </html>
