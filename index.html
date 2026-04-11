@@ -2,28 +2,29 @@
 <html lang="en" data-theme="stealth">
 <head>
     <meta charset="UTF-8">
-    <title>Comm-OS | Unified Terminal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comm-OS | Terminal</title>
     <script src="/socket.io/socket.io.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Outfit:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            /* Stealth Theme (Default) */
             --bg: #05070a;
-            --card: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.1);
+            --card: rgba(255, 255, 255, 0.02);
+            --border: rgba(255, 255, 255, 0.08);
             --text: #e2e8f0;
             --accent: #00f2ff;
             --lock-color: #ff0055;
             --font-main: 'Outfit', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
+            --glow: 0 0 15px rgba(0, 242, 255, 0.2);
         }
 
         [data-theme="neon"] {
             --bg: #0a0b1e;
-            --card: rgba(138, 43, 226, 0.05);
-            --border: rgba(138, 43, 226, 0.3);
+            --card: rgba(188, 19, 254, 0.05);
+            --border: rgba(188, 19, 254, 0.2);
             --accent: #bc13fe;
-            --text: #f0e6ff;
+            --glow: 0 0 15px rgba(188, 19, 254, 0.3);
         }
 
         body {
@@ -32,27 +33,36 @@
             font-family: var(--font-main);
             margin: 0;
             display: grid;
-            grid-template-columns: 350px 1fr;
+            grid-template-columns: 320px 1fr;
             height: 100vh;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.5s ease;
         }
 
-        /* Sidebar / Chat */
+        /* Sidebar Glassmorphism */
         #sidebar {
-            background: rgba(0,0,0,0.2);
+            background: rgba(0, 0, 0, 0.4);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(20px);
+            z-index: 10;
         }
 
         .header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border);
+            padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-weight: 600;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-shadow: var(--glow);
         }
 
         #chat-flow {
@@ -61,80 +71,92 @@
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 15px;
+            scrollbar-width: thin;
         }
 
         .msg-bubble {
             background: var(--card);
-            padding: 12px;
-            border-radius: 12px;
+            padding: 14px;
+            border-radius: 4px 15px 15px 15px;
             border: 1px solid var(--border);
-            font-size: 0.9rem;
-            animation: slideIn 0.3s ease-out;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            animation: slideIn 0.2s ease-out forwards;
         }
 
-        /* Workspace / Editor */
+        /* Editor Section */
         #workspace {
             padding: 40px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            background: radial-gradient(circle at top right, rgba(0, 242, 255, 0.03), transparent);
         }
 
-        .editor-container {
-            position: relative;
-            flex: 1;
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
         }
 
         textarea {
             width: 100%;
-            height: 100%;
+            flex: 1;
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 4px;
             color: var(--text);
-            padding: 30px;
+            padding: 40px;
             font-family: var(--font-mono);
-            font-size: 1.1rem;
-            line-height: 1.6;
+            font-size: 1rem;
+            line-height: 1.8;
             outline: none;
             resize: none;
-            transition: border 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.2);
         }
 
-        textarea:focus { border-color: var(--accent); }
-        textarea:read-only { cursor: not-allowed; border-color: var(--lock-color); }
-
-        /* Controls */
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
+        textarea:focus { border-color: var(--accent); box-shadow: var(--glow); }
+        textarea.locked-state { 
+            border-color: var(--lock-color); 
+            background: rgba(255, 0, 85, 0.02);
+            color: #94a3b8;
         }
 
+        /* Futuristic Controls */
         .btn {
-            background: var(--card);
+            background: transparent;
             border: 1px solid var(--border);
             color: var(--text);
-            padding: 10px 20px;
-            border-radius: 8px;
+            padding: 8px 18px;
+            border-radius: 2px;
             cursor: pointer;
-            font-family: var(--font-main);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-family: var(--font-mono);
             font-size: 0.7rem;
-            transition: 0.2s;
+            transition: 0.3s;
+            text-transform: uppercase;
         }
 
-        .btn:hover { background: var(--border); }
-        .btn-lock { color: var(--lock-color); border-color: var(--lock-color); }
+        .btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+        .btn-lock { border-color: var(--lock-color); color: var(--lock-color); }
         .btn-lock:hover { background: var(--lock-color); color: white; }
 
-        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #chatInput {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 4px;
+            color: white;
+            font-family: var(--font-main);
+            outline: none;
+        }
 
-        .theme-toggle {
-            width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
-            background: var(--card); color: var(--accent); cursor: pointer;
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+        .status-dot {
+            height: 6px; width: 6px; border-radius: 50%; display: inline-block; margin-right: 8px;
+            background: var(--accent); box-shadow: var(--glow);
         }
     </style>
 </head>
@@ -142,54 +164,73 @@
 
     <section id="sidebar">
         <div class="header">
-            <span style="font-weight: 600; font-size: 1.2rem; letter-spacing: -1px;">COMM-OS</span>
-            <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+            <span class="logo">COMM-OS // VER 1.1</span>
+            <button class="btn" style="padding: 5px 10px;" onclick="toggleTheme()">🌓</button>
         </div>
         <div id="chat-flow"></div>
-        <div style="padding: 20px;">
-            <input type="text" id="chatInput" placeholder="Type casual..." 
-                   style="width:100%; background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: white;">
+        <div style="padding: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <input type="text" id="chatInput" placeholder="Enter message...">
         </div>
     </section>
 
     <section id="workspace">
-        <div class="header" style="padding: 0 0 20px 0; border: none;">
+        <div class="workspace-header">
             <div>
-                <h1 style="margin:0; font-size: 1.5rem;">Untitled Workspace</h1>
-                <small id="status" style="color: var(--accent);">● LIVE_COLLABORATION</small>
+                <small style="opacity: 0.5; font-family: var(--font-mono);">CHANNEL / GLOBAL_COLLAB</small>
+                <h1 style="margin: 5px 0 0 0; font-weight: 300;">Unified_Document.txt</h1>
+                <div id="status-container" style="margin-top: 10px; font-size: 0.7rem; font-family: var(--font-mono);">
+                    <span class="status-dot" id="dot"></span><span id="status-text">SYNCING_HANDSHAKE...</span>
+                </div>
             </div>
-            <div class="controls">
-                <button class="btn" onclick="copyLink()">🔗 Share Link</button>
-                <button id="lockBtn" class="btn btn-lock" onclick="requestLock()">🔒 Lock Document</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="copyLink()">Share Link</button>
+                <button id="lockBtn" class="btn btn-lock" onclick="requestLock()">Finalize & Lock</button>
             </div>
         </div>
-        <div class="editor-container">
-            <textarea id="editor" placeholder="Start building your document..."></textarea>
-        </div>
+        <textarea id="editor" spellcheck="false" placeholder="// Initializing communication layer..."></textarea>
     </section>
 
     <script>
-        const socket = io();
+        // Robust Socket Initialization
+        const socket = io({
+            transports: ['websocket', 'polling'],
+            reconnectionAttempts: 10,
+            timeout: 10000
+        });
+
         const editor = document.getElementById('editor');
         const chatFlow = document.getElementById('chat-flow');
         const chatInput = document.getElementById('chatInput');
-        const status = document.getElementById('status');
+        const statusText = document.getElementById('status-text');
+        const dot = document.getElementById('dot');
 
-        // Theme Engine
+        // Connection Management
+        socket.on('connect', () => {
+            statusText.innerText = "LIVE_CONNECTION_ESTABLISHED";
+            dot.style.background = "var(--accent)";
+        });
+
+        socket.on('connect_error', () => {
+            statusText.innerText = "RETRYING_CONNECTION...";
+            dot.style.background = "orange";
+        });
+
+        // Theme Toggle
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme');
             document.documentElement.setAttribute('data-theme', current === 'stealth' ? 'neon' : 'stealth');
         }
 
-        // Logic: Sync State
+        // Logic: Document Sync
         socket.on('init-state', (state) => {
             editor.value = state.content;
             if (state.locked) applyLockStyle();
         });
 
-        // Logic: Document
         editor.addEventListener('input', () => {
-            socket.emit('doc-update', editor.value);
+            if (socket.connected) {
+                socket.emit('doc-update', editor.value);
+            }
         });
 
         socket.on('doc-sync', (content) => {
@@ -197,7 +238,7 @@
         });
 
         function requestLock() {
-            if(confirm("FINALIZING: This document will be locked as an official record. Continue?")) {
+            if(confirm("LOCK PROTOCOL: This action is irreversible. Finalize document?")) {
                 socket.emit('lock-request');
             }
         }
@@ -209,14 +250,15 @@
 
         function applyLockStyle() {
             editor.readOnly = true;
-            status.innerText = "● OFFICIAL_RECORD_LOCKED";
-            status.style.color = "var(--lock-color)";
+            editor.classList.add('locked-state');
+            statusText.innerText = "OFFICIAL_RECORD_LOCKED";
+            dot.style.background = "var(--lock-color)";
             document.getElementById('lockBtn').style.display = 'none';
         }
 
         // Logic: Chat
         chatInput.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter' && chatInput.value.trim()) {
+            if(e.key === 'Enter' && chatInput.value.trim() && socket.connected) {
                 socket.emit('message', { text: chatInput.value });
                 chatInput.value = '';
             }
@@ -225,14 +267,15 @@
         socket.on('new-message', (msg) => {
             const div = document.createElement('div');
             div.className = 'msg-bubble';
-            div.innerHTML = `<small style="color: var(--accent)">${msg.time}</small><br>${msg.text}`;
+            div.innerHTML = `<small style="opacity: 0.4; font-family: var(--font-mono)">${msg.time}</small><br>${msg.text}`;
             chatFlow.appendChild(div);
             chatFlow.scrollTop = chatFlow.scrollHeight;
         });
 
         function copyLink() {
             navigator.clipboard.writeText(window.location.href);
-            alert("Workspace Link Copied!");
+            statusText.innerText = "LINK_COPIED_TO_CLIPBOARD";
+            setTimeout(() => statusText.innerText = editor.readOnly ? "OFFICIAL_RECORD_LOCKED" : "LIVE_CONNECTION_ESTABLISHED", 2000);
         }
     </script>
 </body>
