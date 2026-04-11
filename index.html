@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="stealth">
+<head>
+    <meta charset="UTF-8">
+    <title>Comm-OS | Unified Terminal</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;500&family=Outfit:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Stealth Theme (Default) */
+            --bg: #05070a;
+            --card: rgba(255, 255, 255, 0.03);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #e2e8f0;
+            --accent: #00f2ff;
+            --lock-color: #ff0055;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="neon"] {
+            --bg: #0a0b1e;
+            --card: rgba(138, 43, 226, 0.05);
+            --border: rgba(138, 43, 226, 0.3);
+            --accent: #bc13fe;
+            --text: #f0e6ff;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font-main);
+            margin: 0;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            height: 100vh;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Sidebar / Chat */
+        #sidebar {
+            background: rgba(0,0,0,0.2);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chat-flow {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg-bubble {
+            background: var(--card);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Workspace / Editor */
+        #workspace {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .editor-container {
+            position: relative;
+            flex: 1;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            color: var(--text);
+            padding: 30px;
+            font-family: var(--font-mono);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            outline: none;
+            resize: none;
+            transition: border 0.3s;
+        }
+
+        textarea:focus { border-color: var(--accent); }
+        textarea:read-only { cursor: not-allowed; border-color: var(--lock-color); }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: var(--font-main);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+            transition: 0.2s;
+        }
+
+        .btn:hover { background: var(--border); }
+        .btn-lock { color: var(--lock-color); border-color: var(--lock-color); }
+        .btn-lock:hover { background: var(--lock-color); color: white; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .theme-toggle {
+            width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border);
+            background: var(--card); color: var(--accent); cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <section id="sidebar">
+        <div class="header">
+            <span style="font-weight: 600; font-size: 1.2rem; letter-spacing: -1px;">COMM-OS</span>
+            <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        </div>
+        <div id="chat-flow"></div>
+        <div style="padding: 20px;">
+            <input type="text" id="chatInput" placeholder="Type casual..." 
+                   style="width:100%; background: var(--card); border: 1px solid var(--border); padding: 12px; border-radius: 8px; color: white;">
+        </div>
+    </section>
+
+    <section id="workspace">
+        <div class="header" style="padding: 0 0 20px 0; border: none;">
+            <div>
+                <h1 style="margin:0; font-size: 1.5rem;">Untitled Workspace</h1>
+                <small id="status" style="color: var(--accent);">● LIVE_COLLABORATION</small>
+            </div>
+            <div class="controls">
+                <button class="btn" onclick="copyLink()">🔗 Share Link</button>
+                <button id="lockBtn" class="btn btn-lock" onclick="requestLock()">🔒 Lock Document</button>
+            </div>
+        </div>
+        <div class="editor-container">
+            <textarea id="editor" placeholder="Start building your document..."></textarea>
+        </div>
+    </section>
+
+    <script>
+        const socket = io();
+        const editor = document.getElementById('editor');
+        const chatFlow = document.getElementById('chat-flow');
+        const chatInput = document.getElementById('chatInput');
+        const status = document.getElementById('status');
+
+        // Theme Engine
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            document.documentElement.setAttribute('data-theme', current === 'stealth' ? 'neon' : 'stealth');
+        }
+
+        // Logic: Sync State
+        socket.on('init-state', (state) => {
+            editor.value = state.content;
+            if (state.locked) applyLockStyle();
+        });
+
+        // Logic: Document
+        editor.addEventListener('input', () => {
+            socket.emit('doc-update', editor.value);
+        });
+
+        socket.on('doc-sync', (content) => {
+            editor.value = content;
+        });
+
+        function requestLock() {
+            if(confirm("FINALIZING: This document will be locked as an official record. Continue?")) {
+                socket.emit('lock-request');
+            }
+        }
+
+        socket.on('doc-locked', (data) => {
+            editor.value = data.content;
+            applyLockStyle();
+        });
+
+        function applyLockStyle() {
+            editor.readOnly = true;
+            status.innerText = "● OFFICIAL_RECORD_LOCKED";
+            status.style.color = "var(--lock-color)";
+            document.getElementById('lockBtn').style.display = 'none';
+        }
+
+        // Logic: Chat
+        chatInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter' && chatInput.value.trim()) {
+                socket.emit('message', { text: chatInput.value });
+                chatInput.value = '';
+            }
+        });
+
+        socket.on('new-message', (msg) => {
+            const div = document.createElement('div');
+            div.className = 'msg-bubble';
+            div.innerHTML = `<small style="color: var(--accent)">${msg.time}</small><br>${msg.text}`;
+            chatFlow.appendChild(div);
+            chatFlow.scrollTop = chatFlow.scrollHeight;
+        });
+
+        function copyLink() {
+            navigator.clipboard.writeText(window.location.href);
+            alert("Workspace Link Copied!");
+        }
+    </script>
+</body>
+</html>
