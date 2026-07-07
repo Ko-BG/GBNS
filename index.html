@@ -89,7 +89,6 @@
 </head>
 <body class="bg-black text-white overflow-x-hidden aurora-bg min-h-screen relative">
     
-    <!-- Loading Screen -->
     <div id="loading" class="fixed inset-0 bg-black z-[100] flex items-center justify-center transition-opacity duration-500">
         <div class="text-center">
             <div class="w-20 h-20 mx-auto border-4 border-transparent border-t-cyan-400 border-r-purple-500 rounded-full animate-spin"></div>
@@ -98,10 +97,8 @@
         </div>
     </div>
 
-    <!-- Background Accent Pattern Overlay -->
     <div class="fixed inset-0 bg-[radial-gradient(circle_at_center,#00f5ff08_0%,transparent_65%)] pointer-events-none z-0"></div>
 
-    <!-- HEADER -->
     <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 backdrop-blur-md">
         <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
             <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
@@ -135,7 +132,6 @@
     </header>
 
     <main class="pt-24 z-10 relative">
-        <!-- HERO -->
         <section id="home" class="min-h-[calc(100vh-6rem)] flex items-center relative py-12">
             <div class="max-w-screen-2xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 <div class="space-y-6">
@@ -162,7 +158,6 @@
                     </div>
                 </div>
                 
-                <!-- Hero Feature Card visual -->
                 <div class="relative lg:ml-auto w-full max-w-xl">
                     <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-purple-500/10 rounded-3xl filter blur-xl"></div>
                     <div class="glass border border-white/10 rounded-3xl p-6 relative shadow-2xl">
@@ -179,7 +174,6 @@
                 </div>
             </div>
             
-            <!-- Quick Dashboard Widget anchors -->
             <div class="hidden xl:flex absolute bottom-4 left-6 gap-6">
                 <div class="glass px-6 py-3 rounded-xl min-w-[160px] border border-white/5">
                     <div class="text-[10px] text-cyan-400 tracking-widest font-mono">STREAK MULTIPLIER</div>
@@ -192,7 +186,6 @@
             </div>
         </section>
 
-        <!-- DATA & METRICS TRACKER -->
         <section class="py-12 border-y border-white/5 bg-black/40 backdrop-blur-sm">
             <div class="max-w-screen-2xl mx-auto px-6">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -216,7 +209,6 @@
             </div>
         </section>
 
-        <!-- COMMERCE: PRO SHOP -->
         <section id="shop" class="py-20">
             <div class="max-w-screen-2xl mx-auto px-6">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
@@ -230,14 +222,11 @@
                     </div>
                 </div>
                 
-                <!-- Dynamic Product Grid -->
                 <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Target for script insertion -->
-                </div>
+                    </div>
             </div>
         </section>
 
-        <!-- GAMING: ARENA SIMULATOR -->
         <section id="arena" class="py-20 bg-zinc-950/60 border-y border-white/5">
             <div class="max-w-screen-2xl mx-auto px-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
@@ -252,19 +241,16 @@
                 </div>
                 
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    <!-- Main Simulation Viewport Container -->
                     <div class="lg:col-span-8 space-y-4">
                         <div class="glass p-2 rounded-2xl overflow-hidden bg-black/80 shadow-2xl relative">
                             <canvas id="gameCanvas" width="800" height="450" class="w-full h-auto block rounded-xl bg-slate-950"></canvas>
                             
-                            <!-- Internal overlay state alerts -->
                             <div id="game-pause-overlay" class="hidden absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-4">
                                 <p class="text-xl font-bold logo-font tracking-wider text-cyan-400 mb-2">MATCH SUSPENDED</p>
                                 <p class="text-xs text-gray-400 max-w-xs">Sim loop paused. Click 'RESUME MATCH' below to reconnect execution pipelines.</p>
                             </div>
                         </div>
                         
-                        <!-- Control Infrastructure Layout -->
                         <div class="flex justify-center gap-4">
                             <button id="btn-game-pause" onclick="GAMING_ENGINE.togglePause()" class="px-6 py-3 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl transition-all text-xs font-bold tracking-widest flex items-center gap-2 uppercase">
                                 <i class="fa-solid fa-pause text-gray-400"></i> <span id="txt-game-pause">Pause Simulation</span>
@@ -275,7 +261,6 @@
                         </div>
                     </div>
                     
-                    <!-- Meta Match Management Panel -->
                     <div class="lg:col-span-4 space-y-6">
                         <div class="glass p-6 rounded-2xl border border-white/10 space-y-6">
                             <div class="flex justify-between items-center bg-white/[0.02] p-4 rounded-xl border border-white/5">
@@ -307,7 +292,6 @@
             </div>
         </section>
 
-        <!-- GLOBAL COMPETITIVE LEADERBOARD -->
         <section id="leaderboard" class="py-20">
             <div class="max-w-screen-2xl mx-auto px-6">
                 <div class="mb-10">
@@ -328,15 +312,13 @@
                                 </tr>
                             </thead>
                             <tbody id="leaderboard-target" class="text-sm divide-y divide-white/5 font-medium">
-                                <!-- Filled by init loop -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- PERFORMANCE DATA METRICS -->
         <section class="py-20 bg-zinc-950/40 border-t border-white/5">
             <div class="max-w-screen-2xl mx-auto px-6">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -352,7 +334,6 @@
             </div>
         </section>
 
-        <!-- AI ASSISTANT NEURAL CORE -->
         <section id="ai" class="py-20">
             <div class="max-w-screen-2xl mx-auto px-6">
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
@@ -369,8 +350,7 @@
                             </div>
                             
                             <div id="ai-chat-output" class="h-80 overflow-y-auto space-y-4 pr-3 text-sm">
-                                <!-- Populated dynamically by engine loops -->
-                            </div>
+                                </div>
                         </div>
                         
                         <div class="flex gap-3 mt-6 border-t border-white/5 pt-4">
@@ -412,7 +392,6 @@
         </section>
     </main>
 
-    <!-- FOOTER -->
     <footer class="border-t border-white/5 bg-zinc-950/80 py-12 relative z-10 backdrop-blur-md">
         <div class="max-w-screen-2xl mx-auto px-6 text-gray-500 text-xs flex flex-col sm:flex-row justify-between items-center gap-6">
             <div class="font-mono tracking-wider">© 2026 PADEL ERBIL MATRIX SYSTEM DATA CONTEXT.</div>
@@ -429,7 +408,6 @@
         </div>
     </footer>
 
-    <!-- TRANSACTION CONTROL MODAL (E-COMMERCE CHECKOUT PIPELINE) -->
     <div id="cart-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-opacity duration-300">
         <div class="glass w-full max-w-lg rounded-2xl p-6 border border-white/10 shadow-2xl relative flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center border-b border-white/5 pb-4 mb-4">
@@ -440,8 +418,7 @@
             </div>
             
             <div id="cart-items-target" class="space-y-4 overflow-y-auto flex-1 pr-1 py-2">
-                <!-- Injected items loop context -->
-            </div>
+                </div>
             
             <div class="border-t border-white/5 pt-4 mt-4 space-y-2 text-xs font-mono text-gray-400">
                 <div class="flex justify-between"><span>Pipeline Allocation Subtotal</span><span id="cart-calc-subtotal" class="text-white font-bold">$0.00</span></div>
@@ -454,8 +431,7 @@
             </div>
             
             <div id="checkout-status-panel" class="hidden mt-4 bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-4 text-center font-mono text-xs text-cyan-400">
-                <!-- Status reporting field -->
-            </div>
+                </div>
 
             <button id="btn-checkout-trigger" onclick="COMMERCE_ENGINE.executeCheckoutPipeline()" 
                     class="w-full mt-6 py-4 bg-gradient-to-r from-cyan-400 to-purple-600 text-black font-bold logo-font tracking-widest text-xs uppercase rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5">
@@ -464,7 +440,6 @@
         </div>
     </div>
 
-    <!-- CORE EXECUTION LOGIC SCRIPTS -->
     <script>
         // System wide context configuration data structures
         const CONFIGURATION = {
@@ -706,6 +681,7 @@
             loopIntervalId: null,
             isRunning: false,
             timeScaleSeconds: 522, // 08:42 initialization values saved
+            wsConnection: null,   // Secure real-time pipeline connection instance slot
             
             // Core Engine Spatial States
             ball: { x: 400, y: 225, vx: 5, vy: 3, radius: 8, speedMagnitude: 6, maxSpeed: 14 },
@@ -721,6 +697,7 @@
                 this.syncDOMScore();
                 this.renderStaticContextScene();
                 this.hookInputDevices();
+                this.connectToNetworkHub(); // Instantiate real-time web routing socket architecture
                 
                 setInterval(() => {
                     if(this.isRunning) {
@@ -728,6 +705,35 @@
                         this.syncDOMTimer();
                     }
                 }, 1000);
+            },
+            
+            connectToNetworkHub() {
+                try {
+                    // Refactored to dynamically link to Render via standard secure websocket pipes
+                    const secureProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+                    this.wsConnection = new WebSocket(secureProtocol + window.location.host);
+                    
+                    this.wsConnection.onopen = () => {
+                        this.spawnEngineNotification("Real-time network socket channel linked cleanly.");
+                    };
+                    
+                    this.wsConnection.onmessage = (event) => {
+                        try {
+                            const signalPayload = JSON.parse(event.data);
+                            if (signalPayload && signalPayload.type === 'STATE_UPDATE') {
+                                this.spawnEngineNotification("Network sync signal compiled.");
+                            }
+                        } catch (err) {
+                            // Suppress internal decoding noise frames
+                        }
+                    };
+
+                    this.wsConnection.onerror = () => {
+                        this.spawnEngineNotification("Network sync loop dropped to standalone fallback.");
+                    };
+                } catch (e) {
+                    this.spawnEngineNotification("Network architecture unreachable. Standalone mode operational.");
+                }
             },
             
             hookInputDevices() {
@@ -896,16 +902,18 @@
             },
             
             syncDOMScore() {
-                document.getElementById('score-left').textContent = this.scoring.home;
-                document.getElementById('score-right').textContent = this.scoring.away;
-                document.getElementById('score-home').textContent = this.scoring.home;
-                document.getElementById('score-away').textContent = this.scoring.away;
+                // Fixed metrics targets checking elements are safely populated
+                const homeScoreEl = document.getElementById('score-home');
+                const awayScoreEl = document.getElementById('score-away');
+                if (homeScoreEl) homeScoreEl.textContent = this.scoring.home;
+                if (awayScoreEl) awayScoreEl.textContent = this.scoring.away;
             },
             
             syncDOMTimer() {
                 const minutes = Math.floor(this.timeScaleSeconds / 60).toString().padStart(2, '0');
                 const seconds = (this.timeScaleSeconds % 60).toString().padStart(2, '0');
-                document.getElementById('game-timer').textContent = `${minutes}:${seconds}`;
+                const timerEl = document.getElementById('game-timer');
+                if (timerEl) timerEl.textContent = `${minutes}:${seconds}`;
             },
             
             spawnEngineNotification(msg) {
@@ -926,33 +934,39 @@
                     }
                 };
 
-                new Chart(document.getElementById('chartActivity'), {
-                    type: 'line',
-                    data: {
-                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
-                        datasets: [{
-                            data: [420, 680, 1240, 2100, 1890, 1340],
-                            borderColor: '#00f5ff',
-                            borderWidth: 2,
-                            tension: 0.4,
-                            pointRadius: 0
-                        }]
-                    },
-                    options: globalThemeOptions
-                });
+                const activityCanvas = document.getElementById('chartActivity');
+                if (activityCanvas) {
+                    new Chart(activityCanvas, {
+                        type: 'line',
+                        data: {
+                            labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                            datasets: [{
+                                data: [420, 680, 1240, 2100, 1890, 1340],
+                                borderColor: '#00f5ff',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                pointRadius: 0
+                            }]
+                        },
+                        options: globalThemeOptions
+                    });
+                }
 
-                new Chart(document.getElementById('chartRevenue'), {
-                    type: 'bar',
-                    data: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-                        datasets: [{
-                            data: [12400, 18900, 23100, 15400, 28700, 31200],
-                            backgroundColor: '#9d00ff',
-                            borderRadius: 4
-                        }]
-                    },
-                    options: globalThemeOptions
-                });
+                const revenueCanvas = document.getElementById('chartRevenue');
+                if (revenueCanvas) {
+                    new Chart(revenueCanvas, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                            datasets: [{
+                                data: [12400, 18900, 23100, 15400, 28700, 31200],
+                                backgroundColor: '#9d00ff',
+                                borderRadius: 4
+                            }]
+                        },
+                        options: globalThemeOptions
+                    });
+                }
             }
         };
 
