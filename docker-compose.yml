@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  padel-engine:
+    container_name: padel_erbil_core
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: padel-erbil-core:1.0.0
+    restart: always
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
