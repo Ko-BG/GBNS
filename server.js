@@ -17,7 +17,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 // --- ENTERPRISE SECURITY & CONSTANT CONFIGURATIONS ---
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000; // Updated target interface baseline port
 const ENGINE_CONFIG = {
     TICK_RATE: 1000 / 60,            // 60 Hz Server Architecture Tick Rate
     QUEUE_RESOLUTION_RATE: 2500,     // Evaluates Matchmaker Pool every 2.5s
