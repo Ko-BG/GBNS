@@ -3,7 +3,7 @@
  * PADEL ERBIL HIGH-PERFORMANCE ENTERPRISE GAME ENGINE
  * ============================================================================
  * Architecture: Fastify Core Engine + Highly Optimized Socket.io Core
- * Target: Low-latency Matchmaking, Server-Side Physics, and E-Commerce Piping
+ * Target: Low-latency Matchmaking, Authoritative Physics, and E-Commerce Piping
  * Environment: Production-Ready (Thread-Safe Simulation Blocks)
  * File Name: server.js
  * ============================================================================
@@ -15,19 +15,21 @@ const fastify = require('fastify')({
 });
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
-const axios = require('axios'); // Added for Daraja and Middle East API consumption
+const axios = require('axios'); 
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_keys_for_international'); 
 
 // --- ENTERPRISE SECURITY & CONSTANT CONFIGURATIONS ---
-const PORT = process.env.PORT || 10000; // Updated target interface baseline port
+const PORT = process.env.PORT || 10000; 
 const ENGINE_CONFIG = {
-    TICK_RATE: 1000 / 60,            // 60 Hz Server Architecture Tick Rate
+    TICK_RATE: 1000 / 60,            // Authoritative 60 Hz Server Architecture Tick Rate
     QUEUE_RESOLUTION_RATE: 2500,     // Evaluates Matchmaker Pool every 2.5s
     BASE_MMR_WINDOW: 120,            // Baseline allowable skill deviation
     WINDOW_EXPANSION_STEP: 45,       // Window width expansion step per check
     COURT_DIMENSIONS: { WIDTH: 800, HEIGHT: 450 },
     PADDLE_DIMENSIONS: { HEIGHT: 100, WIDTH: 15 },
-    BALL_BASE_SPEED: 6
+    BALL_BASE_SPEED: 6,
+    BALL_MAX_SPEED: 14,
+    BALL_ACCELERATION: 1.05          // World-Class Feature: Ball accelerates slightly on hits to add competitive tension
 };
 
 // --- MPESA DARAJA SANDBOX CREDENTIALS (PRODUCTION-READY EXPLICIT FALLBACKS) ---
@@ -66,7 +68,7 @@ const io = require('socket.io')(fastify.server, {
 });
 
 // --- CORE REGISTRIES & STATE PIPES ---
-const connectionPool = new Map();     // Global Client Map tracking active sockets
+const connectionPool = new Map();     
 const matchmakingQueue = { single: [], doubles: [] };
 const activeMatchRooms = new Map();
 
@@ -89,7 +91,6 @@ function processMatchmakingEngine(mode) {
 
     fastify.log.info(`[MATCHMAKER] Evaluating ${mode} queue. Total waiting: ${pool.length}`);
     
-    // Prioritize oldest players in the matchmaking pool
     pool.sort((a, b) => a.enlistedAt - b.enlistedAt);
     const assignedIndices = new Set();
 
@@ -111,7 +112,6 @@ function processMatchmakingEngine(mode) {
             if (skillDelta <= expandedWindow) {
                 matchGroup.push(candidate);
                 if (matchGroup.length === capacityRequired) {
-                    // Mark candidates as locked
                     matchGroup.forEach(p => {
                         const idx = pool.findIndex(orig => orig.socketId === p.socketId);
                         if (idx !== -1) assignedIndices.add(idx);
@@ -124,7 +124,6 @@ function processMatchmakingEngine(mode) {
         }
     }
 
-    // Purge elements from processing registry arrays safely
     matchmakingQueue[mode] = pool.filter((_, idx) => !assignedIndices.has(idx));
 }
 
@@ -162,10 +161,13 @@ function provisionMatchRoom(players, mode) {
         const socketInstance = io.sockets.sockets.get(player.socketId);
         if (socketInstance) {
             socketInstance.join(roomId);
+            // World-Class Optimization: Send complete metadata payload so your UI renders accurately
             socketInstance.emit('match_ready', {
                 roomId,
                 side: teamLeft.includes(player.socketId) ? 'left' : 'right',
-                opponents: teamLeft.includes(player.socketId) ? teamRight : teamLeft
+                opponents: teamLeft.includes(player.socketId) ? teamRight : teamLeft,
+                mode: mode,
+                playerMetaData: matchState.playerMetaData
             });
         }
     });
@@ -173,7 +175,6 @@ function provisionMatchRoom(players, mode) {
     executeGamePhysicsLoop(roomId);
 }
 
-// Continuous background execution sweep for matchmaking pipelines
 setInterval(() => {
     processMatchmakingEngine('single');
     processMatchmakingEngine('doubles');
@@ -181,7 +182,7 @@ setInterval(() => {
 
 /**
  * ============================================================================
- * HIGH-PERFORMANCE SERVER-SIDE PHYSICS ENVIRONMENT (60HZ)
+ * HIGH-PERFORMANCE SERVER-SIDE PHYSICS ENVIRONMENT (60HZ AUTHORITATIVE)
  * ============================================================================
  */
 function executeGamePhysicsLoop(roomId) {
@@ -198,7 +199,7 @@ function executeGamePhysicsLoop(roomId) {
         const state = room.state;
         const ball = state.ball;
 
-        // Wall Deflections (Top & Bottom Boundaries)
+        // 1. Wall Deflections (Top & Bottom Boundaries)
         if (ball.y <= 0) {
             ball.y = 0;
             ball.dy = -ball.dy;
@@ -207,21 +208,33 @@ function executeGamePhysicsLoop(roomId) {
             ball.dy = -ball.dy;
         }
 
-        // Left Paddle Rigid Body Interaction Handling
+        // 2. Left Paddle High-Fidelity Physics Intersection
         if (ball.x <= ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH) {
             if (ball.y >= state.paddleLeftY && ball.y <= state.paddleLeftY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT) {
                 ball.x = ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; // Anti-clipping injection
-                ball.dx = ENGINE_CONFIG.BALL_BASE_SPEED;
-                ball.dy = ((ball.y - (state.paddleLeftY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) / 10);
+                
+                // Calculate dynamic ball deflection angle based on hit position relative to paddle center
+                const relativeIntersectY = (state.paddleLeftY + (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) - ball.y;
+                const normalizedIntersectY = relativeIntersectY / (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2);
+                
+                // Accelerate ball velocity to deliver snappy, elite esports gameplay scaling
+                const currentSpeed = Math.min(Math.abs(ball.dx) * ENGINE_CONFIG.BALL_ACCELERATION, ENGINE_CONFIG.BALL_MAX_SPEED);
+                ball.dx = currentSpeed;
+                ball.dy = -normalizedIntersectY * 5; 
             }
         }
 
-        // Right Paddle Rigid Body Interaction Handling
+        // 3. Right Paddle High-Fidelity Physics Intersection
         if (ball.x >= ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH) {
             if (ball.y >= state.paddleRightY && ball.y <= state.paddleRightY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT) {
                 ball.x = ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; // Anti-clipping injection
-                ball.dx = -ENGINE_CONFIG.BALL_BASE_SPEED;
-                ball.dy = ((ball.y - (state.paddleRightY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) / 10);
+                
+                const relativeIntersectY = (state.paddleRightY + (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) - ball.y;
+                const normalizedIntersectY = relativeIntersectY / (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2);
+                
+                const currentSpeed = Math.min(Math.abs(ball.dx) * ENGINE_CONFIG.BALL_ACCELERATION, ENGINE_CONFIG.BALL_MAX_SPEED);
+                ball.dx = -currentSpeed;
+                ball.dy = -normalizedIntersectY * 5;
             }
         }
 
@@ -233,12 +246,14 @@ function executeGamePhysicsLoop(roomId) {
         if (ball.x < 0) {
             state.score.right++;
             repositionBallState(state);
+            io.to(roomId).emit('score_registered', { score: state.score, scorer: 'right' });
         } else if (ball.x > ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH) {
             state.score.left++;
             repositionBallState(state);
+            io.to(roomId).emit('score_registered', { score: state.score, scorer: 'left' });
         }
 
-        // Network Frame Payload Broadcast
+        // Network Frame Payload Broadcast (Matches standard client-side state hooks)
         io.to(roomId).emit('court_state_update', state);
     }, ENGINE_CONFIG.TICK_RATE);
 }
@@ -246,8 +261,8 @@ function executeGamePhysicsLoop(roomId) {
 function repositionBallState(state) {
     state.ball.x = ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH / 2;
     state.ball.y = ENGINE_CONFIG.COURT_DIMENSIONS.HEIGHT / 2;
-    state.ball.dx = state.ball.dx > 0 ? -ENGINE_CONFIG.BALL_BASE_SPEED : ENGINE_CONFIG.BALL_BASE_SPEED;
-    state.ball.dy = (Math.random() * 6) - 3;
+    state.ball.dx = Math.random() > 0.5 ? ENGINE_CONFIG.BALL_BASE_SPEED : -ENGINE_CONFIG.BALL_BASE_SPEED;
+    state.ball.dy = (Math.random() * 4) - 2;
 }
 
 function cleanAbandonedSessions(socketId) {
@@ -301,7 +316,6 @@ io.on('connection', (socket) => {
                 enlistedAt: Date.now()
             };
 
-            // Prevent duplicate entries
             if (!matchmakingQueue[mode].some(p => p.socketId === socket.id)) {
                 matchmakingQueue[mode].push(targetPlayer);
                 socket.emit('queue_entered', { status: "Searching for matches", estimation: "Under 1 minute" });
@@ -320,14 +334,17 @@ io.on('connection', (socket) => {
         const room = activeMatchRooms.get(roomId);
         if (!room) return;
 
-        // Cap input vector range boundaries to avoid client-side exploitation
         const restrictedY = Math.max(0, Math.min(positionY, ENGINE_CONFIG.COURT_DIMENSIONS.HEIGHT - ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT));
 
+        // Authoritative State Assignment
         if (room.players.teamLeft.includes(socket.id)) {
             room.state.paddleLeftY = restrictedY;
         } else if (room.players.teamRight.includes(socket.id)) {
             room.state.paddleRightY = restrictedY;
         }
+        
+        // World-Class Latency Mitigation: Mirror input transforms instantly back to peer sockets
+        socket.to(roomId).emit('peer_input_update', { playerId: socket.id, positionY: restrictedY });
     });
 
     socket.on('disconnect', () => {
@@ -365,7 +382,7 @@ fastify.post('/api/checkout/create-order', {
                 paymentMethod: { type: 'string', enum: ['mpesa', 'zaincash', 'fastpay', 'stripe'] },
                 deliveryAddress: { type: 'string' },
                 amount: { type: 'number' },
-                phoneNumber: { type: 'string' } // Required for mobile money processing targets
+                phoneNumber: { type: 'string' } 
             }
         }
     }
@@ -460,7 +477,7 @@ fastify.post('/api/checkout/create-order', {
         // --- ROUTE 4: STRIPE INTERNATIONAL CORE METHODS ---
         if (paymentMethod === 'stripe') {
             const paymentIntent = await stripe.paymentIntents.create({
-                amount: Math.ceil(amount * 100), // Convert units into cents/subunit allocations
+                amount: Math.ceil(amount * 100), 
                 currency: 'usd',
                 metadata: { order_id: internalId, trackingIdentifier: internalId }
             });
@@ -503,7 +520,7 @@ const igniteRuntime = async () => {
         await fastify.listen({ port: PORT, host: '0.0.0.0' });
         console.log(`\n==================================================================`);
         console.log(`🛡️  PADEL ERBIL MULTI-VECTOR ARCHITECTURE RUNNING ON PORT ${PORT}`);
-        console.log(`📊  60Hz Server Engine Sync Process Loop: Active`);
+        console.log(`📊  60Hz Authoritative Engine Process Loop: Optimized & Active`);
         console.log(`🌐  Internal Web Server Endpoint Interface: http://localhost:${PORT}`);
         console.log(`==================================================================\n`);
     } catch (err) {
