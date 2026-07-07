@@ -2,184 +2,383 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Comm-OS | Global Terminal</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Padel Erbil | Shop & Play</title>
     <style>
-        :root { --bg: #0b141a; --header: #202c33; --accent: #00a884; --text: #e9edef; --panel: #111b21; }
-        * { box-sizing: border-box; }
-        body { margin: 0; font-family: 'Segoe UI', Helvetica, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
-        
-        /* AUTH OVERLAY */
-        #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
-        .auth-card { background: var(--header); padding: 40px; border-radius: 12px; text-align: center; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        
-        /* LAYOUT */
-        #main-app { display: none; height: 100vh; grid-template-columns: 350px 1fr; }
-        
-        /* SIDEBAR (WhatsApp/Telegram Style) */
-        #sidebar { background: var(--panel); border-right: 1px solid #222d34; display: flex; flex-direction: column; }
-        .sidebar-header { background: var(--header); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        #chat-stream { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { background: #202c33; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; align-self: flex-start; max-width: 85%; }
-        .doc-card { border-left: 4px solid var(--accent); cursor: pointer; background: #182229; padding: 10px; border-radius: 4px; margin-top: 5px; }
-
-        /* EDITOR (Outlook/Word/iSign Style) */
-        #editor-pane { background: var(--bg); display: none; flex-direction: column; padding: 30px; position: relative; }
-        #editor { flex: 1; background: transparent; color: white; border: 1px solid #222d34; padding: 40px; font-size: 1.15rem; line-height: 1.8; font-family: 'Georgia', serif; outline: none; resize: none; border-radius: 8px; }
-        
-        /* SIGNATURE BOX (iSignPDF Logic) */
-        #signature-overlay { 
-            position: absolute; bottom: 80px; right: 80px; width: 320px; 
-            background: #fff; border-radius: 8px; display: none; flex-direction: column; 
-            box-shadow: 0 0 40px rgba(0,0,0,0.8);
+        :root {
+            --padel-neon: #ccff00;
+            --court-blue: #0055a5;
+            --dark-bg: #121212;
+            --card-bg: #1e1e1e;
+            --text-light: #ffffff;
         }
-        #sig-canvas { background: white; touch-action: none; cursor: crosshair; border-radius: 8px 8px 0 0; }
-        .sig-tools { display: flex; justify-content: space-between; padding: 10px; background: #f0f0f0; border-radius: 0 0 8px 8px; }
 
-        .btn { padding: 10px 20px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; }
-        .btn-accent { background: var(--accent); color: white; }
-        .btn-danger { background: #ef4444; color: white; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+        }
+
+        header {
+            background-color: #000;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--padel-neon);
+        }
+
+        .logo h1 {
+            color: var(--padel-neon);
+            font-size: 24px;
+            letter-spacing: 1px;
+        }
+
+        .logo span {
+            color: var(--text-light);
+            font-size: 14px;
+            display: block;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 15px;
+        }
+
+        .tab-btn {
+            background: transparent;
+            color: var(--text-light);
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .tab-btn.active, .tab-btn:hover {
+            border-color: var(--padel-neon);
+            color: var(--padel-neon);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-section {
+            display: none;
+        }
+
+        .page-section.active {
+            display: block;
+        }
+
+        /* E-Commerce Grid Styling */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .product-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #333;
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--padel-neon);
+        }
+
+        .product-img {
+            height: 220px;
+            background: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+        }
+
+        .product-info {
+            padding: 20px;
+        }
+
+        .product-title {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .product-price {
+            color: var(--padel-neon);
+            font-weight: bold;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .buy-btn {
+            width: 100%;
+            background-color: var(--court-blue);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .buy-btn:hover {
+            background-color: #004485;
+        }
+
+        /* Gaming Arena Styling */
+        .game-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .game-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .game-btn {
+            background-color: var(--padel-neon);
+            color: #000;
+            border: none;
+            padding: 10px 25px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        canvas {
+            background-color: var(--court-blue);
+            border: 4px solid #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 4px;
+        }
+
+        .instructions {
+            background-color: var(--card-bg);
+            padding: 15px;
+            border-radius: 6px;
+            max-width: 600px;
+            font-size: 14px;
+            line-height: 1.5;
+            border-left: 4px solid var(--padel-neon);
+        }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2 style="color: var(--accent); margin-bottom: 5px;">Comm-OS</h2>
-            <p style="font-size: 0.8rem; margin-bottom: 25px;">Global Secure Access</p>
-            <input type="tel" id="phoneInput" placeholder="Enter Global Phone Number" style="width:100%; padding:15px; background:#2a3942; border:none; color:white; border-radius:8px; margin-bottom:20px;">
-            <button class="btn btn-accent" style="width:100%" onclick="login()">AUTHENTICATE</button>
+    <header>
+        <div class="logo">
+            <h1>PADEL ERBIL</h1>
+            <span>First Specialized KRG Hub</span>
         </div>
-    </div>
-
-    <div id="main-app">
-        <div id="sidebar">
-            <div class="sidebar-header">
-                <span id="user-info">Node: Global</span>
-                <button onclick="location.reload()" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:0.7rem;">LOGOUT</button>
-            </div>
-            <div id="chat-stream"></div>
-            <div style="padding: 15px;">
-                <input type="text" id="chatInput" placeholder="Type message..." style="width:100%; padding:12px; background:#2a3942; border:none; border-radius:8px; color:white; outline:none;">
-            </div>
+        <div class="nav-tabs">
+            <button class="tab-btn active" onclick="switchTab('shop')">Pro Shop</button>
+            <button class="tab-btn" onclick="switchTab('game')">Gaming Arena</button>
         </div>
+    </header>
 
-        <div id="editor-pane">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 id="active-title">Document Workspace</h3>
-                <button id="lockBtn" class="btn btn-accent" onclick="showSignature()">✍️ SIGN & SEAL</button>
-            </div>
-            
-            <textarea id="editor" placeholder="Drafting official communication..."></textarea>
-
-            <div id="signature-overlay">
-                <canvas id="sig-canvas" width="320" height="180"></canvas>
-                <div class="sig-tools">
-                    <button onclick="clearSig()" style="background:none; border:none; color:#666; font-size:0.7rem;">Clear</button>
-                    <button class="btn btn-accent" onclick="confirmSignature()" style="padding:5px 15px; font-size:0.7rem;">APPLY SIGNATURE</button>
+    <main class="container">
+        
+        <!-- PRO SHOP SECTION -->
+        <section id="shop-section" class="page-section active">
+            <h2 style="margin-bottom: 30px;">Premium Padel Equipment</h2>
+            <div class="shop-grid">
+                <div class="product-card">
+                    <div class="product-img">🎾</div>
+                    <div class="product-info">
+                        <div class="product-title">Bullpadel Vertex 04 2026</div>
+                        <div class="product-price">340,000 IQD</div>
+                        <button class="buy-btn">Order via FastPay / COD</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-img">🎒</div>
+                    <div class="product-info">
+                        <div class="product-title">Nox Pro Series Bag - Blue</div>
+                        <div class="product-price">95,000 IQD</div>
+                        <button class="buy-btn">Order via FastPay / COD</button>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-img">👟</div>
+                    <div class="product-info">
+                        <div class="product-title">Joma Slam Men's Court Shoes</div>
+                        <div class="product-price">120,000 IQD</div>
+                        <button class="buy-btn">Order via FastPay / COD</button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+
+        <!-- GAMING ARENA SECTION -->
+        <section id="game-section" class="page-section">
+            <div class="game-wrapper">
+                <h2>Padel Arcade KRG</h2>
+                <div class="game-controls">
+                    <button class="game-btn" onclick="startGame('single')">Play Single (vs AI)</button>
+                    <button class="game-btn" onclick="startGame('doubles')">Play Doubles (Co-Op)</button>
+                </div>
+                <canvas id="padelCanvas" width="800" height="450"></canvas>
+                <div class="instructions">
+                    <strong>🎮 Controls:</strong><br>
+                    • <strong>Player 1 (Left Wing):</strong> Use <code>W</code> (Up) and <code>S</code> (Down) keys.<br>
+                    • <strong>Player 2 (Right Wing - Doubles Mode):</strong> Use <code>Up Arrow</code> and <code>Down Arrow</code> keys.<br>
+                    • Bounce the ball off the walls and glass backboards. Don't let it slip past your side line!
+                </div>
+            </div>
+        </section>
+
+    </main>
 
     <script>
-        const socket = io();
-        let myPhone = "";
-        let currentDocId = null;
-        let isLocked = false;
-
-        // AUTH
-        function login() {
-            myPhone = document.getElementById('phoneInput').value;
-            if(!myPhone) return;
-            document.getElementById('auth-overlay').style.display = 'none';
-            document.getElementById('main-app').style.display = 'grid';
-            document.getElementById('user-info').innerText = myPhone;
-            socket.emit('auth-global', myPhone);
-        }
-
-        // CHAT -> EDITOR PIVOT
-        function openDocument(id) {
-            currentDocId = id;
-            document.getElementById('editor-pane').style.display = 'flex';
-            document.getElementById('active-title').innerText = `Record: ${id}`;
-            socket.emit('request-doc', id);
-        }
-
-        // CHAT LOGIC
-        const chatInput = document.getElementById('chatInput');
-        chatInput.addEventListener('keypress', (e) => {
-            if(e.key === 'Enter' && chatInput.value) {
-                socket.emit('message', { text: chatInput.value, sender: myPhone });
-                chatInput.value = '';
-            }
-        });
-
-        socket.on('new-entry', (msg) => {
-            const b = document.createElement('div');
-            b.className = 'bubble';
-            b.innerHTML = `<strong>${msg.sender}:</strong> ${msg.text}`;
-            if(msg.text.includes("DOC-")) {
-                const id = "DOC-X-" + Math.floor(Math.random()*100);
-                b.innerHTML += `<div class="doc-card" onclick="openDocument('${id}')">📄 Open Collaborative Record ${id}</div>`;
-            }
-            document.getElementById('chat-stream').appendChild(b);
-            document.getElementById('chat-stream').scrollTop = document.getElementById('chat-stream').scrollHeight;
-        });
-
-        // iSignPDF CANVAS LOGIC
-        const canvas = document.getElementById('sig-canvas');
-        const ctx = canvas.getContext('2d');
-        let drawing = false;
-
-        function showSignature() { document.getElementById('signature-overlay').style.display = 'flex'; }
-        function clearSig() { ctx.clearRect(0,0,canvas.width,canvas.height); }
-
-        canvas.addEventListener('mousedown', startDraw);
-        canvas.addEventListener('mousemove', draw);
-        window.addEventListener('mouseup', () => drawing = false);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e.touches[0]); });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
-
-        function startDraw(e) { drawing = true; ctx.beginPath(); ctx.moveTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top); }
-        function draw(e) {
-            if(!drawing) return;
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000';
-            ctx.lineTo(e.clientX - canvas.getBoundingClientRect().left, e.clientY - canvas.getBoundingClientRect().top);
-            ctx.stroke();
-        }
-
-        function confirmSignature() {
-            const sigData = canvas.toDataURL(); // Encodes drawing as image
-            if(confirm("Apply this biometric signature to the document?")) {
-                socket.emit('seal-with-signature', { id: currentDocId, body: document.getElementById('editor').value, sig: sigData });
-            }
-        }
-
-        socket.on('vault-sealed', (data) => {
-            document.getElementById('signature-overlay').style.display = 'none';
-            document.getElementById('editor').readOnly = true;
-            document.getElementById('lockBtn').innerText = "✅ RECORD SIGNED";
-            document.getElementById('lockBtn').disabled = true;
+        // Tab Navigation Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             
-            // Visual Signature Placement
-            const img = new Image();
-            img.src = data.sig;
-            img.style.position = "absolute";
-            img.style.bottom = "50px";
-            img.style.right = "50px";
-            img.style.borderBottom = "2px solid black";
-            document.getElementById('editor-pane').appendChild(img);
-        });
+            document.getElementById(`${tabName}-section`).classList.add('active');
+            event.target.classList.add('active');
+            
+            if (tabName !== 'game') stopGameLoop();
+        }
 
-        // SYNC DRAFTS
-        document.getElementById('editor').addEventListener('input', (e) => {
-            socket.emit('update-doc', { id: currentDocId, body: e.target.value });
-        });
-        socket.on('sync-doc', (data) => { if(data.id === currentDocId) document.getElementById('editor').value = data.body; });
+        // Padel HTML5 Canvas Game Logic
+        const canvas = document.getElementById('padelCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameInterval;
+        let gameMode = 'single';
+        
+        // Game State Variables
+        let ball = { x: 400, y: 225, dx: 4, dy: 3, radius: 8 };
+        let teamLeft = { p1Y: 175 }; // Controlled via W/S
+        let teamRight = { p2Y: 175 }; // Controlled via Arrows (Doubles) or AI (Single)
+        
+        const paddleWidth = 12;
+        const paddleHeight = 85;
+
+        // Track Keypress State Engine
+        const keys = {};
+        window.addEventListener('keydown', e => keys[e.code] = true);
+        window.addEventListener('keyup', e => keys[e.code] = false);
+
+        function startGame(mode) {
+            gameMode = mode;
+            stopGameLoop();
+            
+            // Reset Positions
+            ball.x = 400; ball.y = 225;
+            ball.dx = Math.random() > 0.5 ? 4 : -4;
+            ball.dy = (Math.random() * 4) - 2;
+            teamLeft.p1Y = 175;
+            teamRight.p2Y = 175;
+
+            gameInterval = setInterval(updateGame, 1000 / 60); // 60 FPS target
+        }
+
+        function stopGameLoop() {
+            clearInterval(gameInterval);
+        }
+
+        function updateGame() {
+            // Player 1 Input Handling (W / S)
+            if (keys['KeyW'] && teamLeft.p1Y > 10) teamLeft.p1Y -= 5;
+            if (keys['KeyS'] && teamLeft.p1Y < canvas.height - paddleHeight - 10) teamLeft.p1Y += 5;
+
+            // Opponent Logic: Doubles (Arrow Keys) vs Single Player (AI Tracking)
+            if (gameMode === 'doubles') {
+                if (keys['ArrowUp'] && teamRight.p2Y > 10) teamRight.p2Y -= 5;
+                if (keys['ArrowDown'] && teamRight.p2Y < canvas.height - paddleHeight - 10) teamRight.p2Y += 5;
+            } else {
+                // Predictive Linear AI Routine
+                let targetY = ball.y - paddleHeight / 2;
+                if (teamRight.p2Y < targetY) teamRight.p2Y += 3.5;
+                if (teamRight.p2Y > targetY) teamRight.p2Y -= 3.5;
+            }
+
+            // Ball Physics: Top & Bottom Structural Glass Bound Collisions
+            if (ball.y + ball.dy < ball.radius || ball.y + ball.dy > canvas.height - ball.radius) {
+                ball.dy = -ball.dy;
+            }
+
+            // Ball Physics: Left Team Collision Matrix
+            if (ball.x < 30 + paddleWidth && ball.y > teamLeft.p1Y && ball.y < teamLeft.p1Y + paddleHeight) {
+                if (ball.dx < 0) {
+                    ball.dx = -ball.dx * 1.05; // Acceleration spike upon sweet-spot hit
+                    ball.dy = (ball.y - (teamLeft.p1Y + paddleHeight/2)) * 0.15;
+                }
+            }
+
+            // Ball Physics: Right Team Collision Matrix
+            if (ball.x > canvas.width - 30 - paddleWidth && ball.y > teamRight.p2Y && ball.y < teamRight.p2Y + paddleHeight) {
+                if (ball.dx > 0) {
+                    ball.dx = -ball.dx * 1.05;
+                    ball.dy = (ball.y - (teamRight.p2Y + paddleHeight/2)) * 0.15;
+                }
+            }
+
+            // Point Scoring Conditions
+            if (ball.x < 0 || ball.x > canvas.width) {
+                ball.x = 400; ball.y = 225; // Reset positions instantly
+                ball.dx = ball.dx > 0 ? -4 : 4;
+                ball.dy = (Math.random() * 4) - 2;
+            }
+
+            // Apply calculated updates to global ball vectors
+            ball.x += ball.dx;
+            ball.y += ball.dy;
+
+            renderCanvas();
+        }
+
+        function renderCanvas() {
+            // Render Background Court Matrix
+            ctx.fillStyle = '#0055a5';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Render Court Structural Markers (Center Grid Overlay)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0);
+            ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+
+            // Render Player Paddles (Left / Right)
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(30, teamLeft.p1Y, paddleWidth, paddleHeight); // Team Left
+            ctx.fillRect(canvas.width - 30 - paddleWidth, teamRight.p2Y, paddleWidth, paddleHeight); // Team Right
+
+            // Render Padel Ball
+            ctx.fillStyle = '#ccff00'; // Neon high-visibility yellow
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Initialize Canvas state presentation immediately on layout generation
+        renderCanvas();
     </script>
 </body>
 </html>
