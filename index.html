@@ -3,31 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Padel Erbil | Shop & Play</title>
+    <title>Padel Erbil | Enterprise Shop & Arena</title>
+    <!-- Include Socket.io Client Engine (Exposes 'io' globally) -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
     <style>
         :root {
             --padel-neon: #ccff00;
             --court-blue: #0055a5;
-            --dark-bg: #121212;
-            --card-bg: #1e1e1e;
+            --dark-bg: #0a0a0a;
+            --card-bg: #141414;
             --text-light: #ffffff;
+            --system-green: #34c759;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
             background-color: var(--dark-bg);
             color: var(--text-light);
+            overflow-x: hidden;
         }
 
         header {
             background-color: #000;
-            padding: 20px;
+            padding: 20px 40px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -36,36 +40,40 @@
 
         .logo h1 {
             color: var(--padel-neon);
-            font-size: 24px;
-            letter-spacing: 1px;
+            font-size: 26px;
+            letter-spacing: 2px;
+            font-weight: 900;
         }
 
         .logo span {
-            color: var(--text-light);
-            font-size: 14px;
+            color: #888;
+            font-size: 12px;
+            text-transform: uppercase;
             display: block;
         }
 
         .nav-tabs {
             display: flex;
-            gap: 15px;
+            gap: 20px;
         }
 
         .tab-btn {
             background: transparent;
-            color: var(--text-light);
+            color: #aaa;
             border: 2px solid transparent;
-            padding: 10px 20px;
+            padding: 12px 24px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 16px;
-            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 14px;
+            transition: all 0.2s ease-in-out;
             border-radius: 4px;
         }
 
         .tab-btn.active, .tab-btn:hover {
             border-color: var(--padel-neon);
             color: var(--padel-neon);
+            background: rgba(204, 255, 0, 0.05);
         }
 
         .container {
@@ -82,49 +90,50 @@
             display: block;
         }
 
-        /* E-Commerce Grid Styling */
+        /* STOREFRONT STYLING */
         .shop-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
         }
 
         .product-card {
             background-color: var(--card-bg);
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            border: 1px solid #333;
-            transition: transform 0.2s;
+            border: 1px solid #222;
+            transition: all 0.3s ease;
         }
 
         .product-card:hover {
-            transform: translateY(-5px);
             border-color: var(--padel-neon);
+            transform: translateY(-5px);
         }
 
         .product-img {
-            height: 220px;
-            background: #2a2a2a;
+            height: 250px;
+            background: linear-gradient(135deg, #1a1a1a, #252525);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 64px;
         }
 
         .product-info {
-            padding: 20px;
+            padding: 24px;
         }
 
         .product-title {
-            font-size: 18px;
-            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
         .product-price {
             color: var(--padel-neon);
-            font-weight: bold;
-            font-size: 20px;
-            margin-bottom: 15px;
+            font-weight: 800;
+            font-size: 22px;
+            margin-bottom: 20px;
         }
 
         .buy-btn {
@@ -132,10 +141,12 @@
             background-color: var(--court-blue);
             color: white;
             border: none;
-            padding: 12px;
+            padding: 14px;
             font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
             transition: background 0.2s;
         }
 
@@ -143,46 +154,111 @@
             background-color: #004485;
         }
 
-        /* Gaming Arena Styling */
-        .game-wrapper {
+        /* INTERACTIVE NETWORKING ARENA STYLING */
+        .arena-container {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            gap: 30px;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .arena-container { grid-template-columns: 1fr; }
+        }
+
+        .game-panel {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            border: 1px solid #222;
         }
 
-        .game-controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
+        .lobby-ui {
+            width: 100%;
+            text-align: center;
+            padding: 40px 0;
         }
 
-        .game-btn {
+        .input-group {
+            margin: 20px 0;
+        }
+
+        .player-input {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 6px;
+            width: 260px;
+            outline: none;
+        }
+
+        .player-input:focus { border-color: var(--padel-neon); }
+
+        .mm-btn {
             background-color: var(--padel-neon);
-            color: #000;
+            color: black;
             border: none;
-            padding: 10px 25px;
-            font-weight: bold;
+            padding: 14px 30px;
+            font-weight: 800;
+            font-size: 16px;
+            text-transform: uppercase;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px;
+            margin: 10px;
+            transition: opacity 0.2s;
         }
+
+        .mm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         canvas {
             background-color: var(--court-blue);
-            border: 4px solid #fff;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            border-radius: 4px;
+            border: 6px solid #fff;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            max-width: 100%;
+            height: auto;
+            display: none;
         }
 
-        .instructions {
-            background-color: var(--card-bg);
-            padding: 15px;
-            border-radius: 6px;
-            max-width: 600px;
-            font-size: 14px;
-            line-height: 1.5;
-            border-left: 4px solid var(--padel-neon);
+        /* SIDE PANEL INFRASTRUCTURE */
+        .side-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
         }
+
+        .status-card, .info-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #222;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: #ff3b30;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dot.online { background-color: var(--system-green); }
+        .dot.searching { background-color: #ffcc00; animation: pulse 1s infinite alternate; }
+
+        @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -190,11 +266,11 @@
     <header>
         <div class="logo">
             <h1>PADEL ERBIL</h1>
-            <span>First Specialized KRG Hub</span>
+            <span>Core Gaming Engine v2.0</span>
         </div>
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('shop')">Pro Shop</button>
-            <button class="tab-btn" onclick="switchTab('game')">Gaming Arena</button>
+            <button class="tab-btn" onclick="switchTab('game')">Live Arena</button>
         </div>
     </header>
 
@@ -202,30 +278,22 @@
         
         <!-- PRO SHOP SECTION -->
         <section id="shop-section" class="page-section active">
-            <h2 style="margin-bottom: 30px;">Premium Padel Equipment</h2>
+            <h2 style="margin-bottom: 30px; font-weight: 800;">Erbil Central Fleet Inventory</h2>
             <div class="shop-grid">
                 <div class="product-card">
-                    <div class="product-img">🎾</div>
+                    <div class="product-img">👑</div>
                     <div class="product-info">
                         <div class="product-title">Bullpadel Vertex 04 2026</div>
                         <div class="product-price">340,000 IQD</div>
-                        <button class="buy-btn">Order via FastPay / COD</button>
+                        <button class="buy-btn" onclick="processCheckout('Bullpadel Vertex 04')">Instant checkout</button>
                     </div>
                 </div>
                 <div class="product-card">
-                    <div class="product-img">🎒</div>
+                    <div class="product-img">🚀</div>
                     <div class="product-info">
-                        <div class="product-title">Nox Pro Series Bag - Blue</div>
-                        <div class="product-price">95,000 IQD</div>
-                        <button class="buy-btn">Order via FastPay / COD</button>
-                    </div>
-                </div>
-                <div class="product-card">
-                    <div class="product-img">👟</div>
-                    <div class="product-info">
-                        <div class="product-title">Joma Slam Men's Court Shoes</div>
-                        <div class="product-price">120,000 IQD</div>
-                        <button class="buy-btn">Order via FastPay / COD</button>
+                        <div class="product-title">Nox AT10 Genius 12K</div>
+                        <div class="product-price">315,000 IQD</div>
+                        <button class="buy-btn" onclick="processCheckout('Nox AT10 Genius')">Instant checkout</button>
                     </div>
                 </div>
             </div>
@@ -233,152 +301,186 @@
 
         <!-- GAMING ARENA SECTION -->
         <section id="game-section" class="page-section">
-            <div class="game-wrapper">
-                <h2>Padel Arcade KRG</h2>
-                <div class="game-controls">
-                    <button class="game-btn" onclick="startGame('single')">Play Single (vs AI)</button>
-                    <button class="game-btn" onclick="startGame('doubles')">Play Doubles (Co-Op)</button>
+            <div class="arena-container">
+                
+                <div class="game-panel">
+                    <!-- LOBBY SELECTION SCREEN -->
+                    <div id="lobby-ui" class="lobby-ui">
+                        <h2 style="font-size: 28px; margin-bottom: 10px;">Enter the Digital Court</h2>
+                        <p style="color: #666;">Match against local KRG competitors in real time</p>
+                        <div class="input-group">
+                            <input type="text" id="usernameInput" class="player-input" placeholder="Enter Player Name..." value="Gillian_Atieno">
+                        </div>
+                        <button class="mm-btn" onclick="joinQueue('single')">1v1 Single Match</button>
+                        <button class="mm-btn" onclick="joinQueue('doubles')">2v2 Doubles Co-Op</button>
+                    </div>
+
+                    <!-- ACTIVE SYSTEM CANVAS -->
+                    <canvas id="padelCanvas" width="800" height="450"></canvas>
                 </div>
-                <canvas id="padelCanvas" width="800" height="450"></canvas>
-                <div class="instructions">
-                    <strong>🎮 Controls:</strong><br>
-                    • <strong>Player 1 (Left Wing):</strong> Use <code>W</code> (Up) and <code>S</code> (Down) keys.<br>
-                    • <strong>Player 2 (Right Wing - Doubles Mode):</strong> Use <code>Up Arrow</code> and <code>Down Arrow</code> keys.<br>
-                    • Bounce the ball off the walls and glass backboards. Don't let it slip past your side line!
+
+                <div class="side-panel">
+                    <div class="status-card">
+                        <h3>Matchmaking Node</h3>
+                        <div class="status-indicator">
+                            <span id="status-dot" class="dot"></span>
+                            <span id="status-text">Disconnected</span>
+                        </div>
+                        <div id="room-id-display" style="margin-top: 15px; font-size: 13px; color: #888; display:none;">
+                            ROOM: <span id="active-room-txt" style="color:var(--padel-neon);">N/A</span>
+                        </div>
+                    </div>
+
+                    <div class="info-card">
+                        <h4 style="color: var(--padel-neon); margin-bottom: 10px;">Live Data Pipeline</h4>
+                        <p style="font-size: 13px; line-height: 1.6; color: #aaa;">
+                            This client framework hooks directly into the Fastify cluster's 60Hz physics thread, minimizing visual synchronization delay.
+                        </p>
+                    </div>
                 </div>
+
             </div>
         </section>
 
     </main>
 
     <script>
-        // Tab Navigation Switching
+        // Tab Navigation Mechanics
         function switchTab(tabName) {
             document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            
             document.getElementById(`${tabName}-section`).classList.add('active');
             event.target.classList.add('active');
-            
-            if (tabName !== 'game') stopGameLoop();
         }
 
-        // Padel HTML5 Canvas Game Logic
+        /**
+         * ==========================================
+         * MULTIPLAYER SOCKET NETWORK ENGINE
+         * ==========================================
+         */
+        const socket = io({ autoConnect: false }); // Explicitly handles gateway connections
         const canvas = document.getElementById('padelCanvas');
         const ctx = canvas.getContext('2d');
         
-        let gameInterval;
-        let gameMode = 'single';
-        
-        // Game State Variables
-        let ball = { x: 400, y: 225, dx: 4, dy: 3, radius: 8 };
-        let teamLeft = { p1Y: 175 }; // Controlled via W/S
-        let teamRight = { p2Y: 175 }; // Controlled via Arrows (Doubles) or AI (Single)
-        
+        let localRoomId = null;
+        let assignedSide = null; // 'left' or 'right'
+        let currentPaddleY = 175;
         const paddleWidth = 12;
         const paddleHeight = 85;
 
-        // Track Keypress State Engine
-        const keys = {};
-        window.addEventListener('keydown', e => keys[e.code] = true);
-        window.addEventListener('keyup', e => keys[e.code] = false);
+        // Visual Synchronization Variables
+        let serverGameState = { ball: { x: 400, y: 225 }, p1Y: 175, p2Y: 175, score: { left: 0, right: 0 } };
 
-        function startGame(mode) {
-            gameMode = mode;
-            stopGameLoop();
+        // Handle successful connection gateway updates
+        socket.on('connect', () => {
+            document.getElementById('status-dot').className = "dot online";
+            document.getElementById('status-text').innerText = "Cluster Connected";
+        });
+
+        // Event: Server signals match pairing is locked
+        socket.on('match_ready', (data) => {
+            localRoomId = data.roomId;
+            assignedSide = data.side;
             
-            // Reset Positions
-            ball.x = 400; ball.y = 225;
-            ball.dx = Math.random() > 0.5 ? 4 : -4;
-            ball.dy = (Math.random() * 4) - 2;
-            teamLeft.p1Y = 175;
-            teamRight.p2Y = 175;
+            document.getElementById('lobby-ui').style.display = 'none';
+            canvas.style.display = 'block';
+            document.getElementById('room-id-display').style.display = 'block';
+            document.getElementById('active-room-txt').innerText = localRoomId;
+            document.getElementById('status-dot').className = "dot online";
+            document.getElementById('status-text').innerText = `Live (${assignedSide.toUpperCase()})`;
 
-            gameInterval = setInterval(updateGame, 1000 / 60); // 60 FPS target
+            // Initialize localized tracking listeners
+            initiateLocalInputListeners();
+        });
+
+        // Event: High-speed delta matrix snapshot arrives
+        socket.on('court_state_update', (incomingState) => {
+            serverGameState = incomingState;
+            renderArena();
+        });
+
+        function joinQueue(mode) {
+            const name = document.getElementById('usernameInput').value.trim() || 'KRG_Player';
+            if (!socket.connected) socket.connect();
+
+            socket.emit('enter_matchmaking', { username: name, mode: mode });
+            
+            document.getElementById('status-dot').className = "dot searching";
+            document.getElementById('status-text').innerText = `Searching ${mode}...`;
+            document.querySelectorAll('.mm-btn').forEach(b => b.disabled = true);
         }
 
-        function stopGameLoop() {
-            clearInterval(gameInterval);
-        }
-
-        function updateGame() {
-            // Player 1 Input Handling (W / S)
-            if (keys['KeyW'] && teamLeft.p1Y > 10) teamLeft.p1Y -= 5;
-            if (keys['KeyS'] && teamLeft.p1Y < canvas.height - paddleHeight - 10) teamLeft.p1Y += 5;
-
-            // Opponent Logic: Doubles (Arrow Keys) vs Single Player (AI Tracking)
-            if (gameMode === 'doubles') {
-                if (keys['ArrowUp'] && teamRight.p2Y > 10) teamRight.p2Y -= 5;
-                if (keys['ArrowDown'] && teamRight.p2Y < canvas.height - paddleHeight - 10) teamRight.p2Y += 5;
-            } else {
-                // Predictive Linear AI Routine
-                let targetY = ball.y - paddleHeight / 2;
-                if (teamRight.p2Y < targetY) teamRight.p2Y += 3.5;
-                if (teamRight.p2Y > targetY) teamRight.p2Y -= 3.5;
-            }
-
-            // Ball Physics: Top & Bottom Structural Glass Bound Collisions
-            if (ball.y + ball.dy < ball.radius || ball.y + ball.dy > canvas.height - ball.radius) {
-                ball.dy = -ball.dy;
-            }
-
-            // Ball Physics: Left Team Collision Matrix
-            if (ball.x < 30 + paddleWidth && ball.y > teamLeft.p1Y && ball.y < teamLeft.p1Y + paddleHeight) {
-                if (ball.dx < 0) {
-                    ball.dx = -ball.dx * 1.05; // Acceleration spike upon sweet-spot hit
-                    ball.dy = (ball.y - (teamLeft.p1Y + paddleHeight/2)) * 0.15;
+        function initiateLocalInputListeners() {
+            window.addEventListener('keydown', (e) => {
+                let moved = false;
+                if (e.code === 'KeyW' || e.code === 'ArrowUp') {
+                    if (currentPaddleY > 10) { currentPaddleY -= 15; moved = true; }
                 }
-            }
-
-            // Ball Physics: Right Team Collision Matrix
-            if (ball.x > canvas.width - 30 - paddleWidth && ball.y > teamRight.p2Y && ball.y < teamRight.p2Y + paddleHeight) {
-                if (ball.dx > 0) {
-                    ball.dx = -ball.dx * 1.05;
-                    ball.dy = (ball.y - (teamRight.p2Y + paddleHeight/2)) * 0.15;
+                if (e.code === 'KeyS' || e.code === 'ArrowDown') {
+                    if (currentPaddleY < canvas.height - paddleHeight - 10) { currentPaddleY += 15; moved = true; }
                 }
-            }
 
-            // Point Scoring Conditions
-            if (ball.x < 0 || ball.x > canvas.width) {
-                ball.x = 400; ball.y = 225; // Reset positions instantly
-                ball.dx = ball.dx > 0 ? -4 : 4;
-                ball.dy = (Math.random() * 4) - 2;
-            }
-
-            // Apply calculated updates to global ball vectors
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
-            renderCanvas();
+                // Push position delta packet down the socket pipeline if updated
+                if (moved && localRoomId) {
+                    socket.emit('player_input', { roomId: localRoomId, positionY: currentPaddleY });
+                }
+            });
         }
 
-        function renderCanvas() {
-            // Render Background Court Matrix
+        function renderArena() {
+            // Refresh Court Background
             ctx.fillStyle = '#0055a5';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Render Court Structural Markers (Center Grid Overlay)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            // Draw Central Net Marking
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(canvas.width / 2, 0);
             ctx.lineTo(canvas.width / 2, canvas.height);
             ctx.stroke();
 
-            // Render Player Paddles (Left / Right)
+            // Render Paddles via incoming state synchronization map
             ctx.fillStyle = '#ffffff';
-            ctx.fillRect(30, teamLeft.p1Y, paddleWidth, paddleHeight); // Team Left
-            ctx.fillRect(canvas.width - 30 - paddleWidth, teamRight.p2Y, paddleWidth, paddleHeight); // Team Right
+            ctx.fillRect(30, serverGameState.p1Y, paddleWidth, paddleHeight); // Team Left
+            ctx.fillRect(canvas.width - 30 - paddleWidth, serverGameState.p2Y, paddleWidth, paddleHeight); // Team Right
 
-            // Render Padel Ball
-            ctx.fillStyle = '#ccff00'; // Neon high-visibility yellow
+            // Render Ball Position
+            ctx.fillStyle = '#ccff00';
             ctx.beginPath();
-            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.arc(serverGameState.ball.x, serverGameState.ball.y, 8, 0, Math.PI * 2);
             ctx.fill();
+
+            // Render Scoreboard Layout Overlay
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.font = 'bold 32px monospace';
+            ctx.fillText(serverGameState.score.left, canvas.width / 2 - 60, 45);
+            ctx.fillText(serverGameState.score.right, canvas.width / 2 + 40, 45);
         }
 
-        // Initialize Canvas state presentation immediately on layout generation
-        renderCanvas();
+        /**
+         * ==========================================
+         * ASYNCHRONOUS ASSET CHECKOUT ENGINE
+         * ==========================================
+         */
+        async function processCheckout(productName) {
+            try {
+                const response = await fetch('/api/checkout/create-order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        items: [{ name: productName, qty: 1 }],
+                        paymentMethod: 'FastPay',
+                        deliveryAddress: 'Erbil, Gulan Street'
+                    })
+                });
+                const data = await response.json();
+                alert(`📦 Order Placed!\nID: ${data.orderId}\nDelivery: ${data.estimatedDelivery}`);
+            } catch (error) {
+                console.error('Checkout Endpoint Failure:', error);
+                alert('Order Routing Error. Check local server execution logs.');
+            }
+        }
     </script>
 </body>
 </html>
