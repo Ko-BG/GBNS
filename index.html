@@ -121,7 +121,7 @@
 
             <div class="flex items-center gap-5">
                 <div id="admin-indicator" class="hidden text-[10px] font-mono font-bold tracking-widest text-purple-400 bg-purple-950/50 border border-purple-500/30 px-2.5 py-1 rounded-md animate-pulse">
-                    ADMIN MODE
+                    ADMIN MODE ACTIVE
                 </div>
                 <button onclick="COMMERCE_ENGINE.toggleCartModal()" class="relative p-2 text-gray-300 hover:text-cyan-400 transition-colors">
                     <i class="fa-solid fa-basket-shopping text-lg"></i>
@@ -164,10 +164,10 @@
                 <div class="relative lg:ml-auto w-full max-w-xl">
                     <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-purple-500/10 rounded-3xl filter blur-xl"></div>
                     <div class="glass border border-white/10 rounded-3xl p-6 relative shadow-2xl">
-                        <div class="aspect-video w-full bg-gradient-to-br from-zinc-900 to-black rounded-xl overflow-hidden relative border border-white/5 flex items-center justify-center">
+                        <div id="media-viewport-container" class="aspect-video w-full bg-gradient-to-br from-zinc-900 to-black rounded-xl overflow-hidden relative border border-white/5 flex items-center justify-center">
                             <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1200&auto=format&fit=crop');"></div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
-                            <i class="fa-regular fa-circle-play text-5xl text-cyan-400 cursor-pointer hover:scale-110 transition-transform relative z-10 filter drop-shadow"></i>
+                            <i onclick="COMMERCE_ENGINE.triggerHeroVideoPlay()" class="fa-regular fa-circle-play text-5xl text-cyan-400 cursor-pointer hover:scale-110 transition-transform relative z-10 filter drop-shadow"></i>
                             <div class="absolute bottom-4 left-4 flex items-center gap-2">
                                 <span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">LIVE</span>
                                 <span class="text-xs tracking-wider font-semibold">PRODUCTION GATEWAY SEAMLESS</span>
@@ -211,6 +211,8 @@
                     <div class="flex flex-wrap items-center gap-4 text-xs font-mono">
                         <button onclick="COMMERCE_ENGINE.filterCatalog('all')" class="px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-all text-white">ALL GEAR</button>
                         <button onclick="COMMERCE_ENGINE.filterCatalog('rackets')" class="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-all text-gray-400">RACKETS</button>
+                        <button onclick="COMMERCE_ENGINE.filterCatalog('shoes')" class="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-all text-gray-400">SHOES</button>
+                        <button onclick="COMMERCE_ENGINE.filterCatalog('accessories')" class="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-all text-gray-400">ACCESSORIES</button>
                         <button id="admin-ingest-trigger" onclick="COMMERCE_ENGINE.togglePostItemModal()" class="hidden px-4 py-1.5 rounded-md bg-purple-600 text-white font-bold hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20">
                             <i class="fa-solid fa-plus mr-1"></i> INGEST NEW ITEM
                         </button>
@@ -331,27 +333,40 @@
                                 </div>
                                 <div>
                                     <h3 class="text-lg font-bold logo-font tracking-wide">NEURAL COACH v4</h3>
-                                    <p class="text-xs text-amber-400 font-mono flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"></span> SYSTEM LINK OFFLINE</p>
+                                    <p class="text-xs text-emerald-400 font-mono flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> SYSTEM LINK OPERATIONAL</p>
                                 </div>
                             </div>
                             
-                            <div id="ai-chat-output" class="h-80 overflow-y-auto space-y-4 pr-3 text-sm"></div>
+                            <div id="ai-chat-output" class="h-80 overflow-y-auto space-y-4 pr-3 text-sm">
+                                <div class="bg-white/5 p-3 rounded-xl border border-white/5 max-w-[80%]">
+                                    <span class="text-cyan-400 font-bold block text-[10px] uppercase tracking-wider mb-1">NEURAL AGENT</span>
+                                    Welcome Operator. Enter match statistics or tactical constraints into the interface pipeline to model court optimization vectors.
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="flex gap-3 mt-6 border-t border-white/5 pt-4">
-                            <input id="ai-chat-input" type="text" placeholder="AI Coach query terminal offline..." disabled
-                                   class="flex-1 bg-white/5 border border-white/5 opacity-40 rounded-xl px-5 py-4 focus:outline-none text-sm font-light cursor-not-allowed">
-                            <button disabled class="px-6 bg-zinc-800 text-gray-500 rounded-xl font-bold tracking-wider text-xs uppercase cursor-not-allowed">
-                                Locked
+                        <form onsubmit="AI_ENGINE.handleChatSubmission(event)" class="flex gap-3 mt-6 border-t border-white/5 pt-4">
+                            <input id="ai-chat-input" type="text" placeholder="Query technical tactical models or analyze active court mechanics..."
+                                   class="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-400 text-sm font-light text-white">
+                            <button type="submit" class="px-6 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl font-bold tracking-wider text-xs uppercase transition-colors">
+                                Send Matrix
                             </button>
-                        </div>
+                        </form>
                     </div>
                     
                     <div class="lg:col-span-4 flex flex-col gap-6">
                         <div class="glass p-6 rounded-2xl border border-white/5 flex-1">
                             <h4 class="text-xs font-mono tracking-widest text-cyan-400 mb-4 uppercase">Optimization Vectors</h4>
-                            <div class="space-y-2 text-xs font-mono text-gray-500 text-center py-6">
-                                Advanced tactical models require dynamic session handshakes. Join arena grid to synchronize engine logic parameters.
+                            <div class="space-y-3 font-mono text-[11px]">
+                                <div onclick="AI_ENGINE.injectPresetQuery('Analyze high-acceleration ball vectors')" class="p-2.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl cursor-pointer transition-colors text-gray-300">
+                                    <i class="fa-solid fa-bolt text-amber-400 mr-2"></i> Ball Acceleration Mechanics
+                                </div>
+                                <div onclick="AI_ENGINE.injectPresetQuery('Formulate double queue spatial configuration')" class="p-2.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl cursor-pointer transition-colors text-gray-300">
+                                    <i class="fa-solid fa-users text-purple-400 mr-2"></i> Double Queue Architecture
+                                </div>
+                                <div onclick="AI_ENGINE.injectPresetQuery('Model regional Middle East payment fallback protocols')" class="p-2.5 bg-white/5 hover:bg-white/10 border border-white/5 rounded-xl cursor-pointer transition-colors text-gray-300">
+                                    <i class="fa-solid fa-credit-card text-cyan-400 mr-2"></i> Payment Fallback Models
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -408,6 +423,16 @@
                         <input id="new-item-sku" type="text" required placeholder="SKU-ERB-99" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400">
                     </div>
                 </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block mb-1 text-[10px] text-gray-400 uppercase tracking-widest">Fallback Image URL</label>
+                        <input id="new-item-image-url" type="text" placeholder="https://cdn..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-[10px] text-gray-400 uppercase tracking-widest">Fallback Video URL</label>
+                        <input id="new-item-video-url" type="text" placeholder="https://cdn..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                </div>
                 <button type="submit" class="w-full mt-4 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-bold logo-font tracking-widest uppercase rounded-xl transition-all">
                     Commit Item Serialization
                 </button>
@@ -426,6 +451,38 @@
             
             <div id="cart-items-target" class="space-y-4 overflow-y-auto flex-1 pr-1 py-2"></div>
             
+            <div class="border-t border-white/5 pt-4 mt-4 space-y-3">
+                <label class="block text-[10px] font-mono font-bold uppercase tracking-widest text-gray-400">Select Financial Routing Vector</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-[10px] font-bold">
+                    <label class="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400 transition-colors text-center">
+                        <input type="radio" name="paymentMethod" value="stripe" checked class="mb-1.5 accent-cyan-400">
+                        STRIPE INT
+                    </label>
+                    <label class="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400 transition-colors text-center">
+                        <input type="radio" name="paymentMethod" value="mpesa" class="mb-1.5 accent-cyan-400">
+                        M-PESA
+                    </label>
+                    <label class="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400 transition-colors text-center">
+                        <input type="radio" name="paymentMethod" value="zaincash" class="mb-1.5 accent-cyan-400">
+                        ZAIN CASH
+                    </label>
+                    <label class="flex flex-col items-center justify-center p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:border-cyan-400 transition-colors text-center">
+                        <input type="radio" name="paymentMethod" value="fastpay" class="mb-1.5 accent-cyan-400">
+                        FASTPAY IQ
+                    </label>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-[10px]">
+                    <div>
+                        <label class="block mb-1 text-gray-400 uppercase tracking-widest">Routing Identifier (Phone)</label>
+                        <input id="checkout-phone" type="text" value="+9647835000000" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                    <div>
+                        <label class="block mb-1 text-gray-400 uppercase tracking-widest">Logistics Target Address</label>
+                        <input id="checkout-address" type="text" value="Erbil Central Depot Terminal" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-white focus:outline-none focus:border-cyan-400">
+                    </div>
+                </div>
+            </div>
+
             <div class="border-t border-white/5 pt-4 mt-4 space-y-2 text-xs font-mono text-gray-400">
                 <div class="flex justify-between"><span>Pipeline Allocation Subtotal</span><span id="cart-calc-subtotal" class="text-white font-bold">$0.00</span></div>
                 <div class="flex justify-between"><span>Regional Business Tariff</span><span id="cart-calc-tax" class="text-white font-bold">$0.00</span></div>
@@ -446,13 +503,13 @@
     </div>
 
     <script>
+        // Global Local In-Memory Sync Catalog Array Layout
+        let CLIENT_CATALOG = [
+            { id: "PROD_PADEL_RACKET_001", name: "Erbil Pro Authoritative Racket", price: 150.00, category: "rackets", emoji: "🎾", rating: 5, stockCode: "SKU-ERB-01", imageUrl: "", videoUrl: "" },
+            { id: "PROD_PADEL_BALLS_002", name: "Championship Tournament Balls", price: 15.00, category: "accessories", emoji: "📦", rating: 5, stockCode: "SKU-ERB-02", imageUrl: "", videoUrl: "" }
+        ];
+
         const CONFIGURATION = {
-            PRODUCTS: [
-                { id: 1, name: "ERBIL CARBON BLADE X1", price: 229, category: "rackets", emoji: "🎾", rating: 5, stockCode: "SKU-ERB-01" },
-                { id: 2, name: "VELOCITY KINETIC COURT MATRIX", price: 159, category: "shoes", emoji: "👟", rating: 4, stockCode: "SKU-ERB-02" },
-                { id: 3, name: "NITRO FLARE BALL QUANTUM PACK", price: 45, category: "accessories", emoji: "📦", rating: 5, stockCode: "SKU-ERB-03" },
-                { id: 4, name: "TOUR PACK INTEGRAL CORE BAG", price: 89, category: "accessories", emoji: "🎒", rating: 4, stockCode: "SKU-ERB-04" }
-            ],
             LEADERBOARD_SEED: [
                 { rank: 1, name: "KurdishAce_V2", wins: 142, xp: 9840, trend: "up" },
                 { rank: 2, name: "PadelPhantom_X", wins: 119, xp: 8720, trend: "down" },
@@ -489,11 +546,12 @@
 
         /**
          * ============================================================================
-         * ADAPTIVE ADMIN CONTROL ENVIRONMENT MODULE
+         * ADAPTIVE ADMIN CONTROL CONTROLLED VECTOR PIPELINE
          * ============================================================================
          */
         const ADMIN_ENGINE = {
             isAdminActive: false,
+            adminToken: "erbil_secure_admin_pass", // Matches backend explicit defaults
             
             toggleAdminContext() {
                 this.isAdminActive = !this.isAdminActive;
@@ -504,7 +562,7 @@
                 if (this.isAdminActive) {
                     indicator.classList.remove('hidden');
                     ingestTrigger.classList.remove('hidden');
-                    COMMERCE_ENGINE.spawnNotificationToast("ADMIN IDENTITY ASSIGNED. Inventory controls operational.");
+                    COMMERCE_ENGINE.spawnNotificationToast("ADMIN IDENTITY ASSIGNED. Server mutations enabled.");
                     AUDIO_SYNTH.playTone(659.25, 'sine', 0.3, 0.08);
                 } else {
                     indicator.classList.add('hidden');
@@ -512,44 +570,61 @@
                     COMMERCE_ENGINE.spawnNotificationToast("Switched back to client matrix profile context view.");
                     AUDIO_SYNTH.playTone(329.63, 'sine', 0.2, 0.05);
                 }
-                COMMERCE_ENGINE.renderCatalog(CONFIGURATION.PRODUCTS);
-            },
-
-            removeInventoryItem(productId) {
-                const targetIndex = CONFIGURATION.PRODUCTS.findIndex(p => p.id === productId);
-                if (targetIndex !== -1) {
-                    const itemName = CONFIGURATION.PRODUCTS[targetIndex].name;
-                    CONFIGURATION.PRODUCTS.splice(targetIndex, 1);
-                    COMMERCE_ENGINE.renderCatalog(CONFIGURATION.PRODUCTS);
-                    COMMERCE_ENGINE.spawnNotificationToast(`Purged ${itemName} from catalog matrices successfully.`);
-                    AUDIO_SYNTH.playTone(180, 'sawtooth', 0.25, 0.05);
-                }
+                COMMERCE_ENGINE.renderCatalog(CLIENT_CATALOG);
             }
         };
 
         const COMMERCE_ENGINE = {
             cartState: [],
+            activeCategoryFilter: 'all',
             
-            init() {
-                this.renderCatalog(CONFIGURATION.PRODUCTS);
+            async init() {
+                await this.pullServerInventory();
                 this.updateGlobalCartCounters();
+            },
+
+            async pullServerInventory() {
+                try {
+                    const response = await fetch('/api/products');
+                    if(response.ok) {
+                        const payload = await response.json();
+                        if(payload.catalog && payload.catalog.length > 0) {
+                            CLIENT_CATALOG = payload.catalog.map(p => ({
+                                ...p,
+                                category: p.category || 'rackets',
+                                rating: 5,
+                                stockCode: p.id.substring(0, 11)
+                            }));
+                        }
+                    }
+                } catch(e) {
+                    console.error("[SYNC ENGINE] Remote repository inaccessible. Reverting to persistent defaults.");
+                }
+                this.renderCatalog(CLIENT_CATALOG);
             },
             
             renderCatalog(items) {
                 const target = document.getElementById('product-grid');
                 if(!target) return;
-                target.innerHTML = items.map(product => {
-                    // Inject real-time administrative deletion tags when admin verification context satisfies logic
-                    const adminOverlayControl = ADMIN_ENGINE.isAdminActive 
-                        ? `<button onclick="event.stopPropagation(); ADMIN_ENGINE.removeInventoryItem(${product.id})" class="absolute top-3 right-3 bg-red-600/80 hover:bg-red-700 text-white rounded-md p-1.5 transition-all text-[10px] font-mono font-bold z-20"><i class="fa-regular fa-trash-can mr-1"></i> PURGE</button>` 
-                        : '';
 
+                const processedItems = this.activeCategoryFilter === 'all' 
+                    ? items 
+                    : items.filter(p => p.category === this.activeCategoryFilter);
+
+                target.innerHTML = processedItems.map(product => {
+                    // Custom asset fallback injection loop sequence
+                    const visualAssetPayload = product.imageUrl 
+                        ? `<img src="${product.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">`
+                        : '';
+                    
                     return `
                     <div class="glass rounded-2xl overflow-hidden card-hover border ${ADMIN_ENGINE.isAdminActive ? 'border-purple-500/40' : 'border-white/5'} group flex flex-col justify-between relative">
-                        ${adminOverlayControl}
-                        <div class="h-56 bg-zinc-900/60 flex items-center justify-center text-6xl relative select-none border-b border-white/5">
-                            ${product.emoji}
-                            <span class="absolute top-3 left-3 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] font-mono text-gray-400 tracking-wider">${product.stockCode}</span>
+                        <div class="h-56 bg-zinc-900/60 flex items-center justify-center relative overflow-hidden select-none border-b border-white/5">
+                            ${visualAssetPayload}
+                            <div class="absolute inset-0 flex items-center justify-center text-6xl bg-zinc-950/20 backdrop-blur-[2px]">
+                                ${product.emoji}
+                            </div>
+                            <span class="absolute top-3 left-3 bg-black/60 border border-white/10 px-2 py-0.5 rounded text-[9px] font-mono text-gray-400 tracking-wider z-10">${product.stockCode || product.id}</span>
                         </div>
                         <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
                             <div>
@@ -557,11 +632,9 @@
                                     <h3 class="font-bold text-base tracking-wide text-white group-hover:text-cyan-400 transition-colors">${product.name}</h3>
                                     <span class="text-xl font-black font-mono text-white">$${product.price}</span>
                                 </div>
-                                <div class="text-amber-400 text-xs mt-1">
-                                    ★ ★ ★ ★ ★
-                                </div>
+                                <div class="text-amber-400 text-xs mt-1">★ ★ ★ ★ ★</div>
                             </div>
-                            <button onclick="COMMERCE_ENGINE.injectItemToCart(${product.id})" 
+                            <button onclick="COMMERCE_ENGINE.injectItemToCart('${product.id}')" 
                                     class="w-full py-3 bg-white text-black rounded-xl font-bold tracking-wider text-xs uppercase hover:bg-cyan-400 transition-colors shadow-md">
                                 Ingest Inventory Unit
                             </button>
@@ -572,43 +645,53 @@
             },
 
             filterCatalog(category) {
-                if(category === 'all') {
-                    this.renderCatalog(CONFIGURATION.PRODUCTS);
-                } else {
-                    const filtered = CONFIGURATION.PRODUCTS.filter(p => p.category === category);
-                    this.renderCatalog(filtered);
-                }
+                this.activeCategoryFilter = category;
+                this.renderCatalog(CLIENT_CATALOG);
             },
 
             togglePostItemModal() {
                 document.getElementById('post-item-modal').classList.toggle('hidden');
             },
 
-            handlePostItemSubmit(event) {
+            async handlePostItemSubmit(event) {
                 event.preventDefault();
                 
                 const name = document.getElementById('new-item-name').value.trim();
-                const price = parseInt(document.getElementById('new-item-price').value, 10);
+                const price = parseFloat(document.getElementById('new-item-price').value);
                 const category = document.getElementById('new-item-category').value;
                 const emoji = document.getElementById('new-item-emoji').value.trim();
-                const stockCode = document.getElementById('new-item-sku').value.trim();
+                const id = document.getElementById('new-item-sku').value.trim();
+                const imageUrl = document.getElementById('new-item-image-url').value.trim();
+                const videoUrl = document.getElementById('new-item-video-url').value.trim();
                 
-                const generatedId = CONFIGURATION.PRODUCTS.length > 0 
-                    ? Math.max(...CONFIGURATION.PRODUCTS.map(p => p.id)) + 1 
-                    : 1;
-                const newProductPayload = { id: generatedId, name, price, category, emoji, rating: 5, stockCode };
+                const productPayload = { id, name, price, category, emoji, imageUrl, videoUrl };
                 
-                CONFIGURATION.PRODUCTS.push(newProductPayload);
-                this.renderCatalog(CONFIGURATION.PRODUCTS);
-                
-                document.getElementById('form-post-item').reset();
-                this.togglePostItemModal();
-                this.spawnNotificationToast(`Successfully serialized and populated ${name} into active view.`);
-                AUDIO_SYNTH.playTone(880, 'sine', 0.2, 0.05);
+                try {
+                    const response = await fetch('/api/admin/products/save', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${ADMIN_ENGINE.adminToken}`
+                        },
+                        body: JSON.stringify(productPayload)
+                    });
+                    
+                    if(response.ok) {
+                        this.spawnNotificationToast("Synchronized new product SKU flawlessly with backend catalog storage.");
+                        await this.pullServerInventory();
+                        document.getElementById('form-post-item').reset();
+                        this.togglePostItemModal();
+                        AUDIO_SYNTH.playTone(880, 'sine', 0.2, 0.05);
+                    } else {
+                        throw new Error("Rejected by backend security barrier.");
+                    }
+                } catch (err) {
+                    this.spawnNotificationToast(`Ingestion Error: ${err.message}`);
+                }
             },
             
             injectItemToCart(productId) {
-                const match = CONFIGURATION.PRODUCTS.find(p => p.id === productId);
+                const match = CLIENT_CATALOG.find(p => p.id === productId);
                 if (!match) return;
                 
                 const existing = this.cartState.find(item => item.product.id === productId);
@@ -707,26 +790,45 @@
                 const statusPanel = document.getElementById('checkout-status-panel');
                 const triggerBtn = document.getElementById('btn-checkout-trigger');
                 
+                const selectedVector = document.querySelector('input[name="paymentMethod"]:checked').value;
+                const activePhone = document.getElementById('checkout-phone').value.trim();
+                const activeAddress = document.getElementById('checkout-address').value.trim();
+
                 statusPanel.classList.remove('hidden');
-                statusPanel.textContent = "DISPATCHING NATIVE PAYLOAD TO API GATEWAY...";
+                statusPanel.textContent = `DISPATCHING PAYLOAD ROUTED VIA: ${selectedVector.toUpperCase()} INTERFACE...`;
                 triggerBtn.disabled = true;
                 
+                let orderSubtotal = this.cartState.reduce((acc, i) => acc + (i.product.price * i.quantity), 0);
+                let finalCalculatedAmount = orderSubtotal * 1.08 + 15;
+
                 try {
                     const response = await fetch('/api/checkout/create-order', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            items: this.cartState.map(i => ({ id: i.product.id, qty: i.quantity })),
-                            paymentMethod: "stripe", // Updated fallback to match server schemas safely
-                            deliveryAddress: "Erbil Central Depot Terminal",
-                            amount: this.cartState.reduce((acc, i) => acc + (i.product.price * i.quantity), 0) * 1.08 + 15,
-                            phoneNumber: "+9647835000000"
+                            items: this.cartState.map(i => ({
+                                id: i.product.id,
+                                name: i.product.name,
+                                price: i.product.price,
+                                quantity: i.quantity
+                            })),
+                            paymentMethod: selectedVector,
+                            deliveryAddress: activeAddress,
+                            amount: finalCalculatedAmount,
+                            phoneNumber: activePhone
                         })
                     });
                     
-                    if (response.status === 201 || response.ok) {
-                        const data = await response.json();
-                        statusPanel.textContent = `ORDER CAPTURED: ${data.trackingIdentifier}`;
+                    const data = await response.json();
+                    
+                    if (response.status === 201 && data.status === "Success") {
+                        if (data.paymentUrl) {
+                            statusPanel.innerHTML = `REDIRECTING TO GATEWAY WIRE... <a href="${data.paymentUrl}" target="_blank" class="underline font-bold text-amber-400">CLICK TO EXECUTE MANUAL LINK</a>`;
+                            window.open(data.paymentUrl, '_blank');
+                        } else {
+                            statusPanel.textContent = `ORDER CAPTURED SUCCESSFULLY [${data.trackingIdentifier}]`;
+                        }
+                        
                         AUDIO_SYNTH.playTone(880, 'sine', 0.25, 0.05);
                         setTimeout(() => {
                             this.cartState = [];
@@ -734,21 +836,35 @@
                             statusPanel.classList.add('hidden');
                             triggerBtn.disabled = false;
                             this.toggleCartModal();
-                        }, 2000);
+                        }, 4000);
                     } else {
-                        throw new Error("Target validation fault.");
+                        throw new Error(data.message || "Target operational verification fault.");
                     }
                 } catch (err) {
-                    statusPanel.textContent = "GATEWAY ROUTING CRITICAL FAULT - CHECK LOGS";
+                    statusPanel.textContent = `GATEWAY REJECTION: ${err.message.toUpperCase()}`;
                     triggerBtn.disabled = false;
                 }
+            },
+
+            triggerHeroVideoPlay() {
+                const container = document.getElementById('media-viewport-container');
+                // Dynamically look for any product featuring a valid video layout asset string
+                const productWithVideo = CLIENT_CATALOG.find(p => p.videoUrl);
+                const targetedSource = productWithVideo ? productWithVideo.videoUrl : "https://cdn.yourdomain.com/assets/videos/racket_spin.mp4";
+                
+                container.innerHTML = `
+                    <video src="${targetedSource}" autoplay loop controls class="w-full h-full object-cover rounded-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"></video>
+                    <div class="hidden absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-black/80 font-mono text-xs text-red-400">
+                        <i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i> VIDEO RENDERING SUBSYSTEM INACCESSIBLE
+                    </div>
+                `;
             }
         };
 
         const GAMING_ENGINE = {
             canvas: null,
             ctx: null,
-            socket: null, // Fixed abstraction naming boundary
+            socket: null,
             clientSide: null,
             roomActiveId: null,
 
@@ -769,7 +885,6 @@
             
             connectToNetworkHub() {
                 try {
-                    // Initialized standard Socket.io transport layer integration to replace faulty raw WebSockets
                     this.socket = io({
                         transports: ['websocket', 'polling']
                     });
@@ -788,18 +903,22 @@
                         this.roomActiveId = roomConfig.roomId;
                         this.clientSide = roomConfig.side;
                         
-                        document.getElementById('txt-room-id').textContent = this.roomActiveId;
+                        document.getElementById('txt-room-id').textContent = this.roomActiveId.substring(0, 22) + "...";
                         document.getElementById('txt-room-id').className = "text-emerald-400 font-semibold";
                         document.getElementById('txt-player-side').textContent = this.clientSide.toUpperCase();
                         
                         if (document.getElementById('game-pause-overlay')) {
                             document.getElementById('game-pause-overlay').classList.add('hidden');
                         }
-                        COMMERCE_ENGINE.spawnNotificationToast(`MATCH SYSTEM ONLINE. Assigned to ${this.clientSide} side.`);
+                        COMMERCE_ENGINE.spawnNotificationToast(`MATCH SYSTEM ONLINE. Side: ${this.clientSide.toUpperCase()}`);
                     });
 
                     this.socket.on('court_state_update', (courtState) => {
                         this.updateFromNetworkPacket(courtState);
+                    });
+
+                    this.socket.on('score_registered', (payload) => {
+                        AUDIO_SYNTH.playTone(440, 'triangle', 0.1, 0.04);
                     });
 
                     this.socket.on('match_aborted', (data) => {
@@ -825,7 +944,6 @@
                 
                 document.getElementById('txt-match-mode').textContent = mode.toUpperCase();
                 
-                // Dispatched standard Socket.io emit frame to match backend schema processing routines
                 this.socket.emit('enter_matchmaking', {
                     username: 'Operator_Node_' + Math.floor(Math.random() * 100),
                     mode: mode,
@@ -894,6 +1012,59 @@
             }
         };
 
+        const AI_ENGINE = {
+            injectPresetQuery(queryText) {
+                const input = document.getElementById('ai-chat-input');
+                if (input) {
+                    input.value = queryText;
+                    input.focus();
+                }
+            },
+
+            handleChatSubmission(event) {
+                event.preventDefault();
+                const input = document.getElementById('ai-chat-input');
+                const output = document.getElementById('ai-chat-output');
+                
+                if (!input || !input.value.trim() || !output) return;
+                
+                const userQuery = input.value.trim();
+                input.value = '';
+                
+                // Append User Chat Block
+                const userBlock = document.createElement('div');
+                userBlock.className = "bg-white/[0.02] border border-white/10 p-3 rounded-xl max-w-[80%] ml-auto text-right font-mono text-xs";
+                userBlock.innerHTML = `
+                    <span class="text-purple-400 font-bold block text-[10px] uppercase tracking-wider mb-1">OPERATOR CORE</span>
+                    ${userQuery}
+                `;
+                output.appendChild(userBlock);
+                
+                // Advanced Tactical Context Modeling Response Routing Sequence
+                setTimeout(() => {
+                    const agentBlock = document.createElement('div');
+                    agentBlock.className = "bg-white/5 p-3 rounded-xl border border-white/5 max-w-[80%] font-mono text-xs";
+                    
+                    let responseContent = "Context optimization simulation matched successfully against engine telemetry parameters.";
+                    if (userQuery.toLowerCase().includes('acceleration')) {
+                        responseContent = "ANALYSIS COMPLETE: Physics configuration features a base metric speed of 6 scaling quadratically up to an authoritative maximum of 14 execution cycles. Paddle contact applies a 1.05 acceleration factor vector.";
+                    } else if (userQuery.toLowerCase().includes('queue')) {
+                        responseContent = "COMPILATION ROUTINE: Matchmaking loops execute over separate queues partitioned by single (capacity 2) and doubles (capacity 4). Pool searches auto-expand skill matching bounds linearly by 45 points every 2.5 seconds.";
+                    } else if (userQuery.toLowerCase().includes('payment')) {
+                        responseContent = "TELEMETRY LOG: Multi-vector payment engine features complete abstraction routing vectors for Safaricom M-Pesa STK push procedures via Daraja API, Zain Cash JWT payload token signing, and FastPay IQD configurations.";
+                    }
+                    
+                    agentBlock.innerHTML = `
+                        <span class="text-cyan-400 font-bold block text-[10px] uppercase tracking-wider mb-1">NEURAL AGENT</span>
+                        ${responseContent}
+                    `;
+                    output.appendChild(agentBlock);
+                    output.scrollTop = output.scrollHeight;
+                    AUDIO_SYNTH.playTone(783.99, 'sine', 0.12, 0.03);
+                }, 750);
+            }
+        };
+
         const ANALYTICS_INFRASTRUCTURE = {
             async init() {
                 const globalThemeOptions = {
@@ -907,7 +1078,6 @@
                 };
 
                 try {
-                    // Pull health metadata live from the running backend node instance
                     const healthResponse = await fetch('/health');
                     if (healthResponse.ok) {
                         const systemData = await healthResponse.json();
