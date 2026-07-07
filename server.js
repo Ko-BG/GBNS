@@ -15,6 +15,8 @@ const fastify = require('fastify')({
 });
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const axios = require('axios'); // Added for Daraja and Middle East API consumption
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_mock_keys_for_international'); 
 
 // --- ENTERPRISE SECURITY & CONSTANT CONFIGURATIONS ---
 const PORT = process.env.PORT || 10000; // Updated target interface baseline port
@@ -26,6 +28,33 @@ const ENGINE_CONFIG = {
     COURT_DIMENSIONS: { WIDTH: 800, HEIGHT: 450 },
     PADDLE_DIMENSIONS: { HEIGHT: 100, WIDTH: 15 },
     BALL_BASE_SPEED: 6
+};
+
+// --- MPESA DARAJA SANDBOX CREDENTIALS (PRODUCTION-READY EXPLICIT FALLBACKS) ---
+const MPESA_CONFIG = {
+    CONSUMER_KEY: process.env.MPESA_CONSUMER_KEY || "hXG67j9A0A8fG7YdhAkjG6tGfD8sSaQ1",
+    CONSUMER_SECRET: process.env.MPESA_CONSUMER_SECRET || "gY7tFfD5sSaQW2eR",
+    SHORTCODE: process.env.MPESA_SHORTCODE || "174379",
+    PASSKEY: process.env.MPESA_PASSKEY || "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919",
+    AUTH_URL: "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
+    STK_PUSH_URL: "https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+    CALLBACK_URL: process.env.MPESA_CALLBACK_URL || "https://yourdomain.com/api/payments/mpesa-callback"
+};
+
+// --- MIDDLE EAST REGIONAL INTEGRATION CONFIGURATIONS ---
+const ME_PAYMENT_CONFIG = {
+    ZAIN_CASH: {
+        MERCHANT_ID: process.env.ZAIN_CASH_MERCHANT_ID || "5cd4439143ecb153443ffd91",
+        SECRET: process.env.ZAIN_CASH_SECRET || "$2y$10$O396Gzz9Z...",
+        MSISDN: process.env.ZAIN_CASH_MSISDN || "9647835000000",
+        INIT_URL: "https://test.zaincash.iq/transaction/init",
+        GATEWAY_URL: "https://test.zaincash.iq/transaction/pay?id="
+    },
+    FASTPAY: {
+        MERCHANT_ID: process.env.FASTPAY_MERCHANT_ID || "merchant_fastpay_iraq",
+        STORE_PASSWORD: process.env.FASTPAY_STORE_PASSWORD || "fastpay_secure_pass",
+        INIT_URL: "https://dev.fast-pay.cash/merchant/generate-payment-token"
+    }
 };
 
 // --- INITIALIZE REAL-TIME WEBSOCKET INFRASTRUCTURE ---
@@ -245,7 +274,7 @@ function cleanAbandonedSessions(socketId) {
  * ============================================================================
  */
 io.on('connection', (socket) => {
-    fastify.log.info(`📡 Global connection opened to Erbil Gateway Node: ${socket.id}`);
+    fastify.log.info(`Global connection opened to Erbil Gateway Node: ${socket.id}`);
     
     connectionPool.set(socket.id, {
         id: socket.id,
@@ -310,6 +339,19 @@ io.on('connection', (socket) => {
 
 /**
  * ============================================================================
+ * HELPER METHODS FOR PAYMENT INTEGRATIONS (DARAJA GENERATORS)
+ * ============================================================================
+ */
+async function getMpesaAccessToken() {
+    const buffer = Buffer.from(`${MPESA_CONFIG.CONSUMER_KEY}:${MPESA_CONFIG.CONSUMER_SECRET}`).toString('base64');
+    const response = await axios.get(MPESA_CONFIG.AUTH_URL, {
+        headers: { Authorization: `Basic ${buffer}` }
+    });
+    return response.data.access_token;
+}
+
+/**
+ * ============================================================================
  * ENTERPRISE E-COMMERCE ENDPOINTS & REST SERVICE ROUTING
  * ============================================================================
  */
@@ -317,26 +359,128 @@ fastify.post('/api/checkout/create-order', {
     schema: {
         body: {
             type: 'object',
-            required: ['items', 'paymentMethod', 'deliveryAddress'],
+            required: ['items', 'paymentMethod', 'deliveryAddress', 'amount', 'phoneNumber'],
             properties: {
                 items: { type: 'array', minItems: 1 },
-                paymentMethod: { type: 'string' },
-                deliveryAddress: { type: 'string' }
+                paymentMethod: { type: 'string', enum: ['mpesa', 'zaincash', 'fastpay', 'stripe'] },
+                deliveryAddress: { type: 'string' },
+                amount: { type: 'number' },
+                phoneNumber: { type: 'string' } // Required for mobile money processing targets
             }
         }
     }
 }, async (request, reply) => {
-    const { items, paymentMethod, deliveryAddress } = request.body;
+    const { items, paymentMethod, deliveryAddress, amount, phoneNumber } = request.body;
     const internalId = `PE-ORD-${uuidv4().substring(0, 8).toUpperCase()}`;
+    
+    fastify.log.info(`[ORDER ENGINE] Compiling payment route via context vector: ${paymentMethod} for Order: ${internalId}`);
 
-    fastify.log.info(`[ORDER ENGINE] Order verified and compiled for Erbil Transit Hub: ${internalId}`);
+    try {
+        // --- ROUTE 1: SAFARICOM MPESA DARAJA SANDBOX STK PUSH ---
+        if (paymentMethod === 'mpesa') {
+            const accessToken = await getMpesaAccessToken();
+            const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
+            const password = Buffer.from(`${MPESA_CONFIG.SHORTCODE}${MPESA_CONFIG.PASSKEY}${timestamp}`).toString('base64');
 
-    return reply.status(201).send({
-        status: "Success",
-        trackingIdentifier: internalId,
-        logisticsStatus: "Dispatched to Erbil Hub logistics line",
-        summary: { itemCount: items.length, deliveryAddress, processingTime: new Date().toISOString() }
-    });
+            const mpesaPayload = {
+                BusinessShortCode: MPESA_CONFIG.SHORTCODE,
+                Password: password,
+                Timestamp: timestamp,
+                TransactionType: "CustomerPayBillOnline",
+                Amount: Math.ceil(amount),
+                PartyA: phoneNumber,
+                PartyB: MPESA_CONFIG.SHORTCODE,
+                PhoneNumber: phoneNumber,
+                CallBackURL: MPESA_CONFIG.CALLBACK_URL,
+                AccountReference: internalId,
+                TransactionDesc: "Padel Erbil E-Commerce Purchase"
+            };
+
+            const mpesaResponse = await axios.post(MPESA_CONFIG.STK_PUSH_URL, mpesaPayload, {
+                headers: { Authorization: `Bearer ${accessToken}` }
+            });
+
+            return reply.status(201).send({
+                status: "Success",
+                trackingIdentifier: internalId,
+                paymentGatewayResponse: mpesaResponse.data,
+                summary: { itemCount: items.length, deliveryAddress, processingTime: new Date().toISOString() }
+            });
+        }
+
+        // --- ROUTE 2: ZAIN CASH IRAQ INTEGRATION ---
+        if (paymentMethod === 'zaincash') {
+            const jwt = require('jsonwebtoken');
+            const zainTokenPayload = {
+                amount: amount,
+                serviceType: "Padel Erbil Booking Services",
+                msisdn: ME_PAYMENT_CONFIG.ZAIN_CASH.MSISDN,
+                orderId: internalId,
+                redirectUrl: "https://yourdomain.com/api/payments/zaincash-callback"
+            };
+
+            const token = jwt.sign(zainTokenPayload, ME_PAYMENT_CONFIG.ZAIN_CASH.SECRET, { expiresIn: '1h' });
+            
+            const zainResponse = await axios.post(ME_PAYMENT_CONFIG.ZAIN_CASH.INIT_URL, {
+                token: token,
+                merchantId: ME_PAYMENT_CONFIG.ZAIN_CASH.MERCHANT_ID,
+                lang: 'en'
+            });
+
+            return reply.status(201).send({
+                status: "Success",
+                trackingIdentifier: internalId,
+                paymentUrl: `${ME_PAYMENT_CONFIG.ZAIN_CASH.GATEWAY_URL}${zainResponse.data.id}`,
+                summary: { itemCount: items.length, deliveryAddress, processingTime: new Date().toISOString() }
+            });
+        }
+
+        // --- ROUTE 3: FASTPAY IRAQ INTEGRATION ---
+        if (paymentMethod === 'fastpay') {
+            const fastPayPayload = {
+                merchant_id: ME_PAYMENT_CONFIG.FASTPAY.MERCHANT_ID,
+                store_password: ME_PAYMENT_CONFIG.FASTPAY.STORE_PASSWORD,
+                order_id: internalId,
+                amount: amount,
+                currency: "IQD",
+                client_mobile_no: phoneNumber,
+                callback_url: "https://yourdomain.com/api/payments/fastpay-callback"
+            };
+
+            const fastPayResponse = await axios.post(ME_PAYMENT_CONFIG.FASTPAY.INIT_URL, fastPayPayload);
+
+            return reply.status(201).send({
+                status: "Success",
+                trackingIdentifier: internalId,
+                paymentUrl: fastPayResponse.data.redirect_url || fastPayResponse.data.payment_url,
+                summary: { itemCount: items.length, deliveryAddress, processingTime: new Date().toISOString() }
+            });
+        }
+
+        // --- ROUTE 4: STRIPE INTERNATIONAL CORE METHODS ---
+        if (paymentMethod === 'stripe') {
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: Math.ceil(amount * 100), // Convert units into cents/subunit allocations
+                currency: 'usd',
+                metadata: { order_id: internalId, trackingIdentifier: internalId }
+            });
+
+            return reply.status(201).send({
+                status: "Success",
+                trackingIdentifier: internalId,
+                clientSecret: paymentIntent.client_secret,
+                summary: { itemCount: items.length, deliveryAddress, processingTime: new Date().toISOString() }
+            });
+        }
+
+    } catch (paymentError) {
+        fastify.log.error(`[PAYMENT ROUTER EXCEPTION] Target pipeline failed: ${paymentError.message}`);
+        return reply.status(500).send({
+            status: "Failure",
+            error: "Payment gateway integration pipeline structural fault.",
+            message: paymentError.message
+        });
+    }
 });
 
 // Health Probe Check Interface Endpoint
