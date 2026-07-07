@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap');
         
@@ -119,11 +120,14 @@
             </nav>
 
             <div class="flex items-center gap-5">
+                <div id="admin-indicator" class="hidden text-[10px] font-mono font-bold tracking-widest text-purple-400 bg-purple-950/50 border border-purple-500/30 px-2.5 py-1 rounded-md animate-pulse">
+                    ADMIN MODE
+                </div>
                 <button onclick="COMMERCE_ENGINE.toggleCartModal()" class="relative p-2 text-gray-300 hover:text-cyan-400 transition-colors">
                     <i class="fa-solid fa-basket-shopping text-lg"></i>
                     <span id="cart-count" class="absolute top-0 right-0 bg-cyan-500 text-black text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-md">0</span>
                 </button>
-                <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center text-xs font-bold border border-white/20 cursor-pointer">
+                <div onclick="ADMIN_ENGINE.toggleAdminContext()" title="Toggle Admin Matrix Profile" class="w-8 h-8 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center text-xs font-bold border border-white/20 cursor-pointer hover:scale-105 transition-transform">
                     GA
                 </div>
             </div>
@@ -207,7 +211,7 @@
                     <div class="flex flex-wrap items-center gap-4 text-xs font-mono">
                         <button onclick="COMMERCE_ENGINE.filterCatalog('all')" class="px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-all text-white">ALL GEAR</button>
                         <button onclick="COMMERCE_ENGINE.filterCatalog('rackets')" class="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-all text-gray-400">RACKETS</button>
-                        <button onclick="COMMERCE_ENGINE.togglePostItemModal()" class="px-4 py-1.5 rounded-md bg-cyan-500 text-black font-bold hover:bg-cyan-400 transition-all">
+                        <button id="admin-ingest-trigger" onclick="COMMERCE_ENGINE.togglePostItemModal()" class="hidden px-4 py-1.5 rounded-md bg-purple-600 text-white font-bold hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/20">
                             <i class="fa-solid fa-plus mr-1"></i> INGEST NEW ITEM
                         </button>
                     </div>
@@ -483,6 +487,46 @@
             }
         };
 
+        /**
+         * ============================================================================
+         * ADAPTIVE ADMIN CONTROL ENVIRONMENT MODULE
+         * ============================================================================
+         */
+        const ADMIN_ENGINE = {
+            isAdminActive: false,
+            
+            toggleAdminContext() {
+                this.isAdminActive = !this.isAdminActive;
+                
+                const indicator = document.getElementById('admin-indicator');
+                const ingestTrigger = document.getElementById('admin-ingest-trigger');
+                
+                if (this.isAdminActive) {
+                    indicator.classList.remove('hidden');
+                    ingestTrigger.classList.remove('hidden');
+                    COMMERCE_ENGINE.spawnNotificationToast("ADMIN IDENTITY ASSIGNED. Inventory controls operational.");
+                    AUDIO_SYNTH.playTone(659.25, 'sine', 0.3, 0.08);
+                } else {
+                    indicator.classList.add('hidden');
+                    ingestTrigger.classList.add('hidden');
+                    COMMERCE_ENGINE.spawnNotificationToast("Switched back to client matrix profile context view.");
+                    AUDIO_SYNTH.playTone(329.63, 'sine', 0.2, 0.05);
+                }
+                COMMERCE_ENGINE.renderCatalog(CONFIGURATION.PRODUCTS);
+            },
+
+            removeInventoryItem(productId) {
+                const targetIndex = CONFIGURATION.PRODUCTS.findIndex(p => p.id === productId);
+                if (targetIndex !== -1) {
+                    const itemName = CONFIGURATION.PRODUCTS[targetIndex].name;
+                    CONFIGURATION.PRODUCTS.splice(targetIndex, 1);
+                    COMMERCE_ENGINE.renderCatalog(CONFIGURATION.PRODUCTS);
+                    COMMERCE_ENGINE.spawnNotificationToast(`Purged ${itemName} from catalog matrices successfully.`);
+                    AUDIO_SYNTH.playTone(180, 'sawtooth', 0.25, 0.05);
+                }
+            }
+        };
+
         const COMMERCE_ENGINE = {
             cartState: [],
             
@@ -494,8 +538,15 @@
             renderCatalog(items) {
                 const target = document.getElementById('product-grid');
                 if(!target) return;
-                target.innerHTML = items.map(product => `
-                    <div class="glass rounded-2xl overflow-hidden card-hover border border-white/5 group flex flex-col justify-between">
+                target.innerHTML = items.map(product => {
+                    // Inject real-time administrative deletion tags when admin verification context satisfies logic
+                    const adminOverlayControl = ADMIN_ENGINE.isAdminActive 
+                        ? `<button onclick="event.stopPropagation(); ADMIN_ENGINE.removeInventoryItem(${product.id})" class="absolute top-3 right-3 bg-red-600/80 hover:bg-red-700 text-white rounded-md p-1.5 transition-all text-[10px] font-mono font-bold z-20"><i class="fa-regular fa-trash-can mr-1"></i> PURGE</button>` 
+                        : '';
+
+                    return `
+                    <div class="glass rounded-2xl overflow-hidden card-hover border ${ADMIN_ENGINE.isAdminActive ? 'border-purple-500/40' : 'border-white/5'} group flex flex-col justify-between relative">
+                        ${adminOverlayControl}
                         <div class="h-56 bg-zinc-900/60 flex items-center justify-center text-6xl relative select-none border-b border-white/5">
                             ${product.emoji}
                             <span class="absolute top-3 left-3 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] font-mono text-gray-400 tracking-wider">${product.stockCode}</span>
@@ -516,7 +567,8 @@
                             </button>
                         </div>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
             },
 
             filterCatalog(category) {
@@ -541,7 +593,9 @@
                 const emoji = document.getElementById('new-item-emoji').value.trim();
                 const stockCode = document.getElementById('new-item-sku').value.trim();
                 
-                const generatedId = CONFIGURATION.PRODUCTS.length + 1;
+                const generatedId = CONFIGURATION.PRODUCTS.length > 0 
+                    ? Math.max(...CONFIGURATION.PRODUCTS.map(p => p.id)) + 1 
+                    : 1;
                 const newProductPayload = { id: generatedId, name, price, category, emoji, rating: 5, stockCode };
                 
                 CONFIGURATION.PRODUCTS.push(newProductPayload);
@@ -663,8 +717,10 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             items: this.cartState.map(i => ({ id: i.product.id, qty: i.quantity })),
-                            paymentMethod: "GATEWAY_INTEGRATED_ACCOUNT",
-                            deliveryAddress: "Erbil Central Depot Terminal"
+                            paymentMethod: "stripe", // Updated fallback to match server schemas safely
+                            deliveryAddress: "Erbil Central Depot Terminal",
+                            amount: this.cartState.reduce((acc, i) => acc + (i.product.price * i.quantity), 0) * 1.08 + 15,
+                            phoneNumber: "+9647835000000"
                         })
                     });
                     
@@ -692,7 +748,7 @@
         const GAMING_ENGINE = {
             canvas: null,
             ctx: null,
-            wsConnection: null,
+            socket: null, // Fixed abstraction naming boundary
             clientSide: null,
             roomActiveId: null,
 
@@ -713,67 +769,81 @@
             
             connectToNetworkHub() {
                 try {
-                    const secureProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
-                    const targetHost = window.location.host || 'localhost:10000';
+                    // Initialized standard Socket.io transport layer integration to replace faulty raw WebSockets
+                    this.socket = io({
+                        transports: ['websocket', 'polling']
+                    });
                     
-                    // Native integration matching standard Fastify server deployments
-                    this.wsConnection = new WebSocket(secureProtocol + targetHost + '/io/');
-                    
-                    this.wsConnection.onopen = () => {
+                    this.socket.on('connect', () => {
                         document.getElementById('game-fps').textContent = "ONLINE_LINK";
                         document.getElementById('game-fps').className = "text-emerald-400 font-bold";
                         document.getElementById('game-ping').textContent = "ESTABLISHED";
-                    };
+                    });
                     
-                    this.wsConnection.onmessage = (event) => {
-                        try {
-                            const packet = JSON.parse(event.data);
-                            if (packet.roomState) {
-                                this.updateFromNetworkPacket(packet.roomState);
-                            }
-                        } catch (err) {}
-                    };
+                    this.socket.on('queue_entered', (data) => {
+                        COMMERCE_ENGINE.spawnNotificationToast(`Matchmaker: ${data.status} (${data.estimation})`);
+                    });
 
-                    this.wsConnection.onerror = () => {
+                    this.socket.on('match_ready', (roomConfig) => {
+                        this.roomActiveId = roomConfig.roomId;
+                        this.clientSide = roomConfig.side;
+                        
+                        document.getElementById('txt-room-id').textContent = this.roomActiveId;
+                        document.getElementById('txt-room-id').className = "text-emerald-400 font-semibold";
+                        document.getElementById('txt-player-side').textContent = this.clientSide.toUpperCase();
+                        
+                        if (document.getElementById('game-pause-overlay')) {
+                            document.getElementById('game-pause-overlay').classList.add('hidden');
+                        }
+                        COMMERCE_ENGINE.spawnNotificationToast(`MATCH SYSTEM ONLINE. Assigned to ${this.clientSide} side.`);
+                    });
+
+                    this.socket.on('court_state_update', (courtState) => {
+                        this.updateFromNetworkPacket(courtState);
+                    });
+
+                    this.socket.on('match_aborted', (data) => {
+                        this.roomActiveId = null;
+                        document.getElementById('txt-room-id').textContent = "NO OPERATIONAL SESSION";
+                        document.getElementById('txt-room-id').className = "text-red-400 font-semibold";
+                        document.getElementById('game-pause-overlay').classList.remove('hidden');
+                        COMMERCE_ENGINE.spawnNotificationToast(data.reason);
+                    });
+
+                    this.socket.on('disconnect', () => {
                         document.getElementById('game-fps').textContent = "ERROR_STATE";
                         document.getElementById('game-fps').className = "text-red-400 font-bold";
-                    };
+                    });
                 } catch (e) {}
             },
 
             joinMatchmaking(mode) {
-                if (!this.wsConnection || this.wsConnection.readyState !== WebSocket.OPEN) {
-                    COMMERCE_ENGINE.spawnNotificationToast("WebSocket connection closed. Unable to dispatch network event.");
+                if (!this.socket || !this.socket.connected) {
+                    COMMERCE_ENGINE.spawnNotificationToast("Socket infrastructure links down. Reconnecting...");
                     return;
                 }
                 
-                const payload = {
-                    event: 'enter_matchmaking',
+                document.getElementById('txt-match-mode').textContent = mode.toUpperCase();
+                
+                // Dispatched standard Socket.io emit frame to match backend schema processing routines
+                this.socket.emit('enter_matchmaking', {
                     username: 'Operator_Node_' + Math.floor(Math.random() * 100),
                     mode: mode,
                     clientMmr: 1200
-                };
-                
-                this.wsConnection.send(JSON.stringify(payload));
-                COMMERCE_ENGINE.spawnNotificationToast(`Enlisted into server matchmaker array for: ${mode}`);
+                });
             },
             
             hookInputDevices() {
                 this.canvas.addEventListener('mousemove', (e) => {
-                    if (!this.roomActiveId || !this.wsConnection) return;
+                    if (!this.roomActiveId || !this.socket || !this.socket.connected) return;
                     
                     const spatialBoundaries = this.canvas.getBoundingClientRect();
                     const functionalY = e.clientY - spatialBoundaries.top;
                     
-                    const payload = {
-                        event: 'player_input',
+                    this.socket.emit('player_input', {
                         roomId: this.roomActiveId,
                         positionY: functionalY
-                    };
-                    
-                    if (this.wsConnection.readyState === WebSocket.OPEN) {
-                        this.wsConnection.send(JSON.stringify(payload));
-                    }
+                    });
                 });
             },
 
@@ -790,7 +860,7 @@
             
             renderStaticContextScene(state) {
                 this.ctx.fillStyle = '#06060f';
-                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                this.fillRectBoundaries(0, 0, this.canvas.width, this.canvas.height);
                 
                 this.ctx.strokeStyle = 'rgba(0, 245, 255, 0.15)';
                 this.ctx.lineWidth = 4;
@@ -803,11 +873,11 @@
                 
                 // Left Paddle
                 this.ctx.fillStyle = '#00f5ff';
-                this.ctx.fillRect(30, state.paddleLeftY, 12, 100);
+                this.fillRectBoundaries(30, state.paddleLeftY, 12, 100);
                 
                 // Right Paddle
                 this.ctx.fillStyle = '#9d00ff';
-                this.ctx.fillRect(758, state.paddleRightY, 12, 100);
+                this.fillRectBoundaries(758, state.paddleRightY, 12, 100);
                 
                 // Ball
                 this.ctx.fillStyle = '#ffffff';
@@ -817,6 +887,10 @@
                 this.ctx.arc(state.ball.x, state.ball.y, 8, 0, Math.PI * 2);
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
+            },
+
+            fillRectBoundaries(x, y, w, h) {
+                this.ctx.fillRect(x, y, w, h);
             }
         };
 
