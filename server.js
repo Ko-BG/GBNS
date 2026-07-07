@@ -72,6 +72,26 @@ const connectionPool = new Map();
 const matchmakingQueue = { single: [], doubles: [] };
 const activeMatchRooms = new Map();
 
+// Global Dynamic Inventory Catalog
+let productCatalog = [
+    {
+        id: "PROD_PADEL_RACKET_001",
+        name: "Erbil Pro Authoritative Racket",
+        price: 150.00,
+        emoji: "🎾",
+        imageUrl: "https://cdn.yourdomain.com/assets/images/racket_pro.jpg", 
+        videoUrl: "https://cdn.yourdomain.com/assets/videos/racket_spin.mp4" 
+    },
+    {
+        id: "PROD_PADEL_BALLS_002",
+        name: "Championship Tournament Balls",
+        price: 15.00,
+        emoji: "📦",
+        imageUrl: "https://cdn.yourdomain.com/assets/images/balls.jpg",
+        videoUrl: ""
+    }
+];
+
 // Register Fastify Static Serving Middleware for Client Assets
 fastify.register(require('@fastify/static'), {
     root: path.join(__dirname),
@@ -161,7 +181,6 @@ function provisionMatchRoom(players, mode) {
         const socketInstance = io.sockets.sockets.get(player.socketId);
         if (socketInstance) {
             socketInstance.join(roomId);
-            // World-Class Optimization: Send complete metadata payload so your UI renders accurately
             socketInstance.emit('match_ready', {
                 roomId,
                 side: teamLeft.includes(player.socketId) ? 'left' : 'right',
@@ -199,7 +218,6 @@ function executeGamePhysicsLoop(roomId) {
         const state = room.state;
         const ball = state.ball;
 
-        // 1. Wall Deflections (Top & Bottom Boundaries)
         if (ball.y <= 0) {
             ball.y = 0;
             ball.dy = -ball.dy;
@@ -208,26 +226,22 @@ function executeGamePhysicsLoop(roomId) {
             ball.dy = -ball.dy;
         }
 
-        // 2. Left Paddle High-Fidelity Physics Intersection
         if (ball.x <= ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH) {
             if (ball.y >= state.paddleLeftY && ball.y <= state.paddleLeftY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT) {
-                ball.x = ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; // Anti-clipping injection
+                ball.x = ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; 
                 
-                // Calculate dynamic ball deflection angle based on hit position relative to paddle center
                 const relativeIntersectY = (state.paddleLeftY + (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) - ball.y;
                 const normalizedIntersectY = relativeIntersectY / (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2);
                 
-                // Accelerate ball velocity to deliver snappy, elite esports gameplay scaling
                 const currentSpeed = Math.min(Math.abs(ball.dx) * ENGINE_CONFIG.BALL_ACCELERATION, ENGINE_CONFIG.BALL_MAX_SPEED);
                 ball.dx = currentSpeed;
                 ball.dy = -normalizedIntersectY * 5; 
             }
         }
 
-        // 3. Right Paddle High-Fidelity Physics Intersection
         if (ball.x >= ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH) {
             if (ball.y >= state.paddleRightY && ball.y <= state.paddleRightY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT) {
-                ball.x = ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; // Anti-clipping injection
+                ball.x = ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; 
                 
                 const relativeIntersectY = (state.paddleRightY + (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) - ball.y;
                 const normalizedIntersectY = relativeIntersectY / (ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2);
@@ -238,11 +252,9 @@ function executeGamePhysicsLoop(roomId) {
             }
         }
 
-        // Position Mutation Integration
         ball.x += ball.dx;
         ball.y += ball.dy;
 
-        // Out-of-Bounds Score Registration Check
         if (ball.x < 0) {
             state.score.right++;
             repositionBallState(state);
@@ -253,7 +265,6 @@ function executeGamePhysicsLoop(roomId) {
             io.to(roomId).emit('score_registered', { score: state.score, scorer: 'left' });
         }
 
-        // Network Frame Payload Broadcast (Matches standard client-side state hooks)
         io.to(roomId).emit('court_state_update', state);
     }, ENGINE_CONFIG.TICK_RATE);
 }
@@ -336,14 +347,12 @@ io.on('connection', (socket) => {
 
         const restrictedY = Math.max(0, Math.min(positionY, ENGINE_CONFIG.COURT_DIMENSIONS.HEIGHT - ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT));
 
-        // Authoritative State Assignment
         if (room.players.teamLeft.includes(socket.id)) {
             room.state.paddleLeftY = restrictedY;
         } else if (room.players.teamRight.includes(socket.id)) {
             room.state.paddleRightY = restrictedY;
         }
         
-        // World-Class Latency Mitigation: Mirror input transforms instantly back to peer sockets
         socket.to(roomId).emit('peer_input_update', { playerId: socket.id, positionY: restrictedY });
     });
 
@@ -372,17 +381,72 @@ async function getMpesaAccessToken() {
  * ENTERPRISE E-COMMERCE ENDPOINTS & REST SERVICE ROUTING
  * ============================================================================
  */
+fastify.get('/api/products', async (request, reply) => {
+    return { status: "Success", catalog: productCatalog };
+});
+
+fastify.post('/api/admin/products/save', {
+    schema: {
+        body: {
+            type: 'object',
+            required: ['id', 'name', 'price', 'emoji'],
+            properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                price: { type: 'number' },
+                emoji: { type: 'string' },
+                imageUrl: { type: 'string' },
+                videoUrl: { type: 'string' }
+            }
+        }
+    }
+}, async (request, reply) => {
+    const authHeader = request.headers.authorization;
+    if (!authHeader || authHeader !== `Bearer ${process.env.ADMIN_SECRET_KEY || 'erbil_secure_admin_pass'}`) {
+        return reply.status(401).send({ status: "Failure", error: "Unauthorized access vector rejected." });
+    }
+
+    const incomingProduct = request.body;
+    const existingIndex = productCatalog.findIndex(p => p.id === incomingProduct.id);
+
+    if (existingIndex !== -1) {
+        productCatalog[existingIndex] = { ...productCatalog[existingIndex], ...incomingProduct };
+        fastify.log.info(`[INVENTORY ENGINE] Mutated product: ${incomingProduct.id}`);
+    } else {
+        productCatalog.push(incomingProduct);
+        fastify.log.info(`[INVENTORY ENGINE] Registered new product SKU: ${incomingProduct.id}`);
+    }
+
+    return reply.status(200).send({ status: "Success", message: "Catalog synchronized flawlessly.", catalog: productCatalog });
+});
+
 fastify.post('/api/checkout/create-order', {
     schema: {
         body: {
             type: 'object',
             required: ['items', 'paymentMethod', 'deliveryAddress', 'amount', 'phoneNumber'],
             properties: {
-                items: { type: 'array', minItems: 1 },
                 paymentMethod: { type: 'string', enum: ['mpesa', 'zaincash', 'fastpay', 'stripe'] },
                 deliveryAddress: { type: 'string' },
                 amount: { type: 'number' },
-                phoneNumber: { type: 'string' } 
+                phoneNumber: { type: 'string' },
+                items: {
+                    type: 'array',
+                    minItems: 1,
+                    items: {
+                        type: 'object',
+                        required: ['id', 'name', 'price', 'quantity'],
+                        properties: {
+                            id: { type: 'string' },
+                            name: { type: 'string' },
+                            price: { type: 'number' },
+                            quantity: { type: 'integer' },
+                            emoji: { type: 'string' },
+                            imageUrl: { type: 'string' },
+                            videoUrl: { type: 'string' }
+                        }
+                    }
+                }
             }
         }
     }
@@ -393,7 +457,6 @@ fastify.post('/api/checkout/create-order', {
     fastify.log.info(`[ORDER ENGINE] Compiling payment route via context vector: ${paymentMethod} for Order: ${internalId}`);
 
     try {
-        // --- ROUTE 1: SAFARICOM MPESA DARAJA SANDBOX STK PUSH ---
         if (paymentMethod === 'mpesa') {
             const accessToken = await getMpesaAccessToken();
             const timestamp = new Date().toISOString().replace(/[^0-9]/g, '').slice(0, 14);
@@ -425,7 +488,6 @@ fastify.post('/api/checkout/create-order', {
             });
         }
 
-        // --- ROUTE 2: ZAIN CASH IRAQ INTEGRATION ---
         if (paymentMethod === 'zaincash') {
             const jwt = require('jsonwebtoken');
             const zainTokenPayload = {
@@ -452,7 +514,6 @@ fastify.post('/api/checkout/create-order', {
             });
         }
 
-        // --- ROUTE 3: FASTPAY IRAQ INTEGRATION ---
         if (paymentMethod === 'fastpay') {
             const fastPayPayload = {
                 merchant_id: ME_PAYMENT_CONFIG.FASTPAY.MERCHANT_ID,
@@ -474,7 +535,6 @@ fastify.post('/api/checkout/create-order', {
             });
         }
 
-        // --- ROUTE 4: STRIPE INTERNATIONAL CORE METHODS ---
         if (paymentMethod === 'stripe') {
             const paymentIntent = await stripe.paymentIntents.create({
                 amount: Math.ceil(amount * 100), 
@@ -500,7 +560,6 @@ fastify.post('/api/checkout/create-order', {
     }
 });
 
-// Health Probe Check Interface Endpoint
 fastify.get('/health', async (request, reply) => {
     return {
         status: "Healthy",
