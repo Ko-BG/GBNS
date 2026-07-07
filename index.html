@@ -1,486 +1,1086 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Padel Erbil | Enterprise Shop & Arena</title>
-    <!-- Include Socket.io Client Engine (Exposes 'io' globally) -->
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <title>PADEL ERBIL • Future of Padel Gaming & E-Commerce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@400;600&display=swap');
+        
         :root {
-            --padel-neon: #ccff00;
-            --court-blue: #0055a5;
-            --dark-bg: #0a0a0a;
-            --card-bg: #141414;
-            --text-light: #ffffff;
-            --system-green: #34c759;
+            --neon-cyan: #00f5ff;
+            --neon-purple: #9d00ff;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
-
+        
         body {
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            overflow-x: hidden;
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .logo-font {
+            font-family: 'Orbitron', sans-serif;
         }
 
-        header {
-            background-color: #000;
-            padding: 20px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--padel-neon);
+        .aurora-bg {
+            background: linear-gradient(45deg, #0a0020, #001a33, #200033);
+            background-size: 400% 400%;
+            animation: aurora 25s ease infinite;
+        }
+        
+        @keyframes aurora {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .neon-text {
+            text-shadow: 0 0 10px var(--neon-cyan),
+                        0 0 20px var(--neon-cyan),
+                        0 0 40px var(--neon-purple);
+        }
+        
+        .card-hover {
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 40px rgba(0, 245, 255, 0.25);
+            border-color: rgba(0, 245, 255, 0.4);
+        }
+        
+        .game-canvas {
+            border: 2px solid rgba(0, 245, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 245, 255, 0.15);
+        }
+        
+        .floating-btn {
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
         }
 
-        .logo h1 {
-            color: var(--padel-neon);
-            font-size: 26px;
-            letter-spacing: 2px;
-            font-weight: 900;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
-
-        .logo span {
-            color: #888;
-            font-size: 12px;
-            text-transform: uppercase;
-            display: block;
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
         }
-
-        .nav-tabs {
-            display: flex;
-            gap: 20px;
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 245, 255, 0.3);
+            border-radius: 10px;
         }
-
-        .tab-btn {
-            background: transparent;
-            color: #aaa;
-            border: 2px solid transparent;
-            padding: 12px 24px;
-            cursor: pointer;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 14px;
-            transition: all 0.2s ease-in-out;
-            border-radius: 4px;
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 245, 255, 0.6);
         }
-
-        .tab-btn.active, .tab-btn:hover {
-            border-color: var(--padel-neon);
-            color: var(--padel-neon);
-            background: rgba(204, 255, 0, 0.05);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .page-section {
-            display: none;
-        }
-
-        .page-section.active {
-            display: block;
-        }
-
-        /* STOREFRONT STYLING */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-        }
-
-        .product-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid #222;
-            transition: all 0.3s ease;
-        }
-
-        .product-card:hover {
-            border-color: var(--padel-neon);
-            transform: translateY(-5px);
-        }
-
-        .product-img {
-            height: 250px;
-            background: linear-gradient(135deg, #1a1a1a, #252525);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 64px;
-        }
-
-        .product-info {
-            padding: 24px;
-        }
-
-        .product-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .product-price {
-            color: var(--padel-neon);
-            font-weight: 800;
-            font-size: 22px;
-            margin-bottom: 20px;
-        }
-
-        .buy-btn {
-            width: 100%;
-            background-color: var(--court-blue);
-            color: white;
-            border: none;
-            padding: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-
-        .buy-btn:hover {
-            background-color: #004485;
-        }
-
-        /* INTERACTIVE NETWORKING ARENA STYLING */
-        .arena-container {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 30px;
-            align-items: start;
-        }
-
-        @media (max-width: 900px) {
-            .arena-container { grid-template-columns: 1fr; }
-        }
-
-        .game-panel {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid #222;
-        }
-
-        .lobby-ui {
-            width: 100%;
-            text-align: center;
-            padding: 40px 0;
-        }
-
-        .input-group {
-            margin: 20px 0;
-        }
-
-        .player-input {
-            background: #1a1a1a;
-            border: 2px solid #333;
-            color: white;
-            padding: 12px 20px;
-            font-size: 16px;
-            border-radius: 6px;
-            width: 260px;
-            outline: none;
-        }
-
-        .player-input:focus { border-color: var(--padel-neon); }
-
-        .mm-btn {
-            background-color: var(--padel-neon);
-            color: black;
-            border: none;
-            padding: 14px 30px;
-            font-weight: 800;
-            font-size: 16px;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 6px;
-            margin: 10px;
-            transition: opacity 0.2s;
-        }
-
-        .mm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        canvas {
-            background-color: var(--court-blue);
-            border: 6px solid #fff;
-            border-radius: 8px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
-            max-width: 100%;
-            height: auto;
-            display: none;
-        }
-
-        /* SIDE PANEL INFRASTRUCTURE */
-        .side-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .status-card, .info-card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid #222;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .dot {
-            width: 12px;
-            height: 12px;
-            background-color: #ff3b30;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .dot.online { background-color: var(--system-green); }
-        .dot.searching { background-color: #ffcc00; animation: pulse 1s infinite alternate; }
-
-        @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
     </style>
 </head>
-<body>
-
-    <header>
-        <div class="logo">
-            <h1>PADEL ERBIL</h1>
-            <span>Core Gaming Engine v2.0</span>
+<body class="bg-black text-white overflow-x-hidden aurora-bg min-h-screen relative">
+    
+    <!-- Loading Screen -->
+    <div id="loading" class="fixed inset-0 bg-black z-[100] flex items-center justify-center transition-opacity duration-500">
+        <div class="text-center">
+            <div class="w-20 h-20 mx-auto border-4 border-transparent border-t-cyan-400 border-r-purple-500 rounded-full animate-spin"></div>
+            <p class="mt-6 text-2xl logo-font tracking-widest neon-text">PADEL ERBIL</p>
+            <p class="text-cyan-400/80 text-xs mt-2 font-mono tracking-widest">INITIALIZING SUBSYSTEMS...</p>
         </div>
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('shop')">Pro Shop</button>
-            <button class="tab-btn" onclick="switchTab('game')">Live Arena</button>
+    </div>
+
+    <!-- Background Accent Pattern Overlay -->
+    <div class="fixed inset-0 bg-[radial-gradient(circle_at_center,#00f5ff08_0%,transparent_65%)] pointer-events-none z-0"></div>
+
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 right-0 z-50 glass border-b border-white/10 backdrop-blur-md">
+        <div class="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+                <div class="w-10 h-10 bg-gradient-to-br from-cyan-400 to-purple-600 rounded-xl flex items-center justify-center text-xl shadow-lg shadow-cyan-500/20">
+                    <i class="fa-solid fa-table-tennis-paddle-ball"></i>
+                </div>
+                <div>
+                    <span class="logo-font text-2xl tracking-tighter neon-text">PADEL</span>
+                    <span class="logo-font text-2xl tracking-tighter text-cyan-400">ERBIL</span>
+                </div>
+            </div>
+            
+            <nav class="hidden md:flex items-center gap-8 text-xs font-semibold tracking-wider text-gray-400">
+                <a href="#home" class="hover:text-cyan-400 transition-colors">HOME</a>
+                <a href="#shop" class="hover:text-cyan-400 transition-colors">SHOP</a>
+                <a href="#arena" class="hover:text-cyan-400 transition-colors">ARENA</a>
+                <a href="#leaderboard" class="hover:text-cyan-400 transition-colors">LEADERBOARD</a>
+                <a href="#ai" class="hover:text-cyan-400 transition-colors">AI COACH</a>
+            </nav>
+
+            <div class="flex items-center gap-5">
+                <button onclick="COMMERCE_ENGINE.toggleCartModal()" class="relative p-2 text-gray-300 hover:text-cyan-400 transition-colors">
+                    <i class="fa-solid fa-basket-shopping text-lg"></i>
+                    <span id="cart-count" class="absolute top-0 right-0 bg-cyan-500 text-black text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-md">0</span>
+                </button>
+                <div class="w-8 h-8 bg-gradient-to-r from-purple-600 to-cyan-500 rounded-lg flex items-center justify-center text-xs font-bold border border-white/20 cursor-pointer">
+                    GA
+                </div>
+            </div>
         </div>
     </header>
 
-    <main class="container">
-        
-        <!-- PRO SHOP SECTION -->
-        <section id="shop-section" class="page-section active">
-            <h2 style="margin-bottom: 30px; font-weight: 800;">Erbil Central Fleet Inventory</h2>
-            <div class="shop-grid">
-                <div class="product-card">
-                    <div class="product-img">👑</div>
-                    <div class="product-info">
-                        <div class="product-title">Bullpadel Vertex 04 2026</div>
-                        <div class="product-price">340,000 IQD</div>
-                        <button class="buy-btn" onclick="processCheckout('Bullpadel Vertex 04')">Instant checkout</button>
+    <main class="pt-24 z-10 relative">
+        <!-- HERO -->
+        <section id="home" class="min-h-[calc(100vh-6rem)] flex items-center relative py-12">
+            <div class="max-w-screen-2xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6">
+                    <div class="inline-flex items-center gap-3 bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-xs font-mono tracking-wide text-gray-300">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-ping"></span>
+                        <span id="hero-live-counter">12,459</span> PLAYERS CONCURRENT
+                    </div>
+                    
+                    <h1 class="text-5xl sm:text-7xl xl:text-8xl font-bold leading-none logo-font tracking-tight text-white">
+                        THE FUTURE OF <br><span class="neon-text">PADEL GAMING</span>
+                    </h1>
+                    
+                    <p class="text-lg text-gray-400 max-w-lg font-light leading-relaxed">
+                        Experience precision physics-based mechanics built for professional athletes and enthusiasts alike. Complete matchups, gear your build, and dominate the ranks.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4 pt-4">
+                        <a href="#arena" class="px-8 py-4 bg-gradient-to-r from-cyan-400 to-purple-600 text-black font-bold rounded-xl shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 transform hover:-translate-y-0.5 transition-all flex items-center gap-2 text-sm uppercase tracking-wider">
+                            <i class="fa-solid fa-gamepad"></i> Enter Match Arena
+                        </a>
+                        <a href="#shop" class="px-8 py-4 border border-white/20 hover:border-cyan-400/50 hover:bg-white/5 text-white font-semibold rounded-xl transition-all text-sm uppercase tracking-wider">
+                            Explore Pro Shop
+                        </a>
                     </div>
                 </div>
-                <div class="product-card">
-                    <div class="product-img">🚀</div>
-                    <div class="product-info">
-                        <div class="product-title">Nox AT10 Genius 12K</div>
-                        <div class="product-price">315,000 IQD</div>
-                        <button class="buy-btn" onclick="processCheckout('Nox AT10 Genius')">Instant checkout</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- GAMING ARENA SECTION -->
-        <section id="game-section" class="page-section">
-            <div class="arena-container">
                 
-                <div class="game-panel">
-                    <!-- LOBBY SELECTION SCREEN -->
-                    <div id="lobby-ui" class="lobby-ui">
-                        <h2 style="font-size: 28px; margin-bottom: 10px;">Enter the Digital Court</h2>
-                        <p style="color: #666;">Match against local KRG competitors in real time</p>
-                        <div class="input-group">
-                            <input type="text" id="usernameInput" class="player-input" placeholder="Enter Player Name..." value="Gillian_Atieno">
+                <!-- Hero Feature Card visual -->
+                <div class="relative lg:ml-auto w-full max-w-xl">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-cyan-500/10 to-purple-500/10 rounded-3xl filter blur-xl"></div>
+                    <div class="glass border border-white/10 rounded-3xl p-6 relative shadow-2xl">
+                        <div class="aspect-video w-full bg-gradient-to-br from-zinc-900 to-black rounded-xl overflow-hidden relative border border-white/5 flex items-center justify-center">
+                            <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1200&auto=format&fit=crop');"></div>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent"></div>
+                            <i class="fa-regular fa-circle-play text-5xl text-cyan-400 cursor-pointer hover:scale-110 transition-transform relative z-10 filter drop-shadow"></i>
+                            <div class="absolute bottom-4 left-4 flex items-center gap-2">
+                                <span class="bg-cyan-500 text-black text-[10px] font-bold px-2 py-0.5 rounded">NEW</span>
+                                <span class="text-xs tracking-wider font-semibold">ENGINE v2.4 MATCHPLAY DEMO</span>
+                            </div>
                         </div>
-                        <button class="mm-btn" onclick="joinQueue('single')">1v1 Single Match</button>
-                        <button class="mm-btn" onclick="joinQueue('doubles')">2v2 Doubles Co-Op</button>
-                    </div>
-
-                    <!-- ACTIVE SYSTEM CANVAS -->
-                    <canvas id="padelCanvas" width="800" height="450"></canvas>
-                </div>
-
-                <div class="side-panel">
-                    <div class="status-card">
-                        <h3>Matchmaking Node</h3>
-                        <div class="status-indicator">
-                            <span id="status-dot" class="dot"></span>
-                            <span id="status-text">Disconnected</span>
-                        </div>
-                        <div id="room-id-display" style="margin-top: 15px; font-size: 13px; color: #888; display:none;">
-                            ROOM: <span id="active-room-txt" style="color:var(--padel-neon);">N/A</span>
-                        </div>
-                    </div>
-
-                    <div class="info-card">
-                        <h4 style="color: var(--padel-neon); margin-bottom: 10px;">Live Data Pipeline</h4>
-                        <p style="font-size: 13px; line-height: 1.6; color: #aaa;">
-                            This client framework hooks directly into the Fastify cluster's 60Hz physics thread, minimizing visual synchronization delay.
-                        </p>
                     </div>
                 </div>
-
+            </div>
+            
+            <!-- Quick Dashboard Widget anchors -->
+            <div class="hidden xl:flex absolute bottom-4 left-6 gap-6">
+                <div class="glass px-6 py-3 rounded-xl min-w-[160px] border border-white/5">
+                    <div class="text-[10px] text-cyan-400 tracking-widest font-mono">STREAK MULTIPLIER</div>
+                    <div class="text-2xl font-bold logo-font mt-0.5">17-0 W/L</div>
+                </div>
+                <div class="glass px-6 py-3 rounded-xl min-w-[160px] border border-white/5">
+                    <div class="text-[10px] text-purple-400 tracking-widest font-mono">GLOBAL STANDING</div>
+                    <div class="text-2xl font-bold logo-font mt-0.5">#42 WORLD</div>
+                </div>
             </div>
         </section>
 
+        <!-- DATA & METRICS TRACKER -->
+        <section class="py-12 border-y border-white/5 bg-black/40 backdrop-blur-sm">
+            <div class="max-w-screen-2xl mx-auto px-6">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                        <div class="text-xs font-mono tracking-widest text-gray-500 uppercase">System Active Nodes</div>
+                        <div id="metric-online" class="text-3xl md:text-4xl font-bold logo-font mt-2 text-white">0</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                        <div class="text-xs font-mono tracking-widest text-gray-500 uppercase">Matches Simulated</div>
+                        <div id="metric-matches" class="text-3xl md:text-4xl font-bold logo-font mt-2 text-cyan-400">0</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                        <div class="text-xs font-mono tracking-widest text-gray-500 uppercase">Dispatched Orders</div>
+                        <div id="metric-orders" class="text-3xl md:text-4xl font-bold logo-font mt-2 text-purple-400">0</div>
+                    </div>
+                    <div class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 text-center">
+                        <div class="text-xs font-mono tracking-widest text-gray-500 uppercase">Gross Throughput</div>
+                        <div id="metric-revenue" class="text-3xl md:text-4xl font-bold logo-font mt-2 text-emerald-400">$0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMMERCE: PRO SHOP -->
+        <section id="shop" class="py-20">
+            <div class="max-w-screen-2xl mx-auto px-6">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-10">
+                    <div>
+                        <span class="text-xs font-mono tracking-widest text-cyan-400 uppercase">Curated Catalog</span>
+                        <h2 class="text-3xl md:text-5xl font-bold logo-font tracking-tight mt-1">E-COMMERCE HUB</h2>
+                    </div>
+                    <div class="flex items-center gap-4 text-xs font-mono">
+                        <button onclick="COMMERCE_ENGINE.filterCatalog('all')" class="px-3 py-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-all text-white">ALL GEAR</button>
+                        <button onclick="COMMERCE_ENGINE.filterCatalog('rackets')" class="px-3 py-1.5 rounded-md bg-white/5 hover:bg-white/10 transition-all text-gray-400">RACKETS</button>
+                    </div>
+                </div>
+                
+                <!-- Dynamic Product Grid -->
+                <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Target for script insertion -->
+                </div>
+            </div>
+        </section>
+
+        <!-- GAMING: ARENA SIMULATOR -->
+        <section id="arena" class="py-20 bg-zinc-950/60 border-y border-white/5">
+            <div class="max-w-screen-2xl mx-auto px-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <span class="text-xs font-mono tracking-widest text-purple-400 uppercase">Core Graphics Simulation</span>
+                        <h2 class="text-3xl md:text-5xl font-bold logo-font tracking-tight mt-1">PADEL COURT v2.0</h2>
+                    </div>
+                    <div class="flex items-center gap-6 text-xs font-mono bg-white/5 px-4 py-2 rounded-xl border border-white/5">
+                        <div>REFRESH: <span id="game-fps" class="text-emerald-400 font-bold">60</span> Hz</div>
+                        <div>LATENCY: <span id="game-ping" class="text-cyan-400 font-bold">14ms</span></div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <!-- Main Simulation Viewport Container -->
+                    <div class="lg:col-span-8 space-y-4">
+                        <div class="glass p-2 rounded-2xl overflow-hidden bg-black/80 shadow-2xl relative">
+                            <canvas id="gameCanvas" width="800" height="450" class="w-full h-auto block rounded-xl bg-slate-950"></canvas>
+                            
+                            <!-- Internal overlay state alerts -->
+                            <div id="game-pause-overlay" class="hidden absolute inset-0 bg-black/70 backdrop-blur-sm flex flex-col items-center justify-center text-center p-4">
+                                <p class="text-xl font-bold logo-font tracking-wider text-cyan-400 mb-2">MATCH SUSPENDED</p>
+                                <p class="text-xs text-gray-400 max-w-xs">Sim loop paused. Click 'RESUME MATCH' below to reconnect execution pipelines.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Control Infrastructure Layout -->
+                        <div class="flex justify-center gap-4">
+                            <button id="btn-game-pause" onclick="GAMING_ENGINE.togglePause()" class="px-6 py-3 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl transition-all text-xs font-bold tracking-widest flex items-center gap-2 uppercase">
+                                <i class="fa-solid fa-pause text-gray-400"></i> <span id="txt-game-pause">Pause Simulation</span>
+                            </button>
+                            <button onclick="GAMING_ENGINE.reset()" class="px-6 py-3 bg-white/5 border border-white/10 hover:border-white/30 rounded-xl transition-all text-xs font-bold tracking-widest flex items-center gap-2 uppercase">
+                                <i class="fa-solid fa-arrows-rotate text-gray-400"></i> Reset Pipeline
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Meta Match Management Panel -->
+                    <div class="lg:col-span-4 space-y-6">
+                        <div class="glass p-6 rounded-2xl border border-white/10 space-y-6">
+                            <div class="flex justify-between items-center bg-white/[0.02] p-4 rounded-xl border border-white/5">
+                                <div class="text-center">
+                                    <span class="text-xl font-bold">🇮🇶</span>
+                                    <p class="text-xs font-bold tracking-wider uppercase text-gray-400 mt-1">PLAYER</p>
+                                    <div id="score-home" class="text-4xl font-bold logo-font text-cyan-400 mt-1">0</div>
+                                </div>
+                                <div class="text-xs font-mono font-bold tracking-widest text-gray-600">VS</div>
+                                <div class="text-center">
+                                    <span class="text-xl">🤖</span>
+                                    <p class="text-xs font-bold tracking-wider uppercase text-gray-400 mt-1">AI PRO</p>
+                                    <div id="score-away" class="text-4xl font-bold logo-font text-purple-400 mt-1">0</div>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-3 text-xs font-mono border-t border-white/5 pt-4">
+                                <div class="flex justify-between"><span class="text-gray-500">SESSION IDENTIFIER</span><span class="text-cyan-400 font-semibold">ERBIL-7842-NEXUS</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">ALGORITHM COMPLEXITY</span><span class="text-orange-400 font-semibold">VECTOR-NEURAL (HARD)</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">ELAPSED MATCHTIME</span><span id="game-timer" class="text-white font-semibold">00:00</span></div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="GAMING_ENGINE.startInteractiveMatch()" class="w-full py-5 bg-gradient-to-r from-cyan-400 to-purple-600 text-black font-bold logo-font text-base tracking-wider rounded-xl shadow-xl transition-all transform hover:-translate-y-0.5 uppercase">
+                            <i class="fa-solid fa-play mr-2"></i> Initialize Match Mechanics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GLOBAL COMPETITIVE LEADERBOARD -->
+        <section id="leaderboard" class="py-20">
+            <div class="max-w-screen-2xl mx-auto px-6">
+                <div class="mb-10">
+                    <span class="text-xs font-mono tracking-widest text-cyan-400 uppercase">Verified Global Standings</span>
+                    <h2 class="text-3xl md:text-5xl font-bold logo-font tracking-tight mt-1">LEADERBOARD</h2>
+                </div>
+                
+                <div class="glass rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/10 bg-white/[0.01] text-xs font-mono tracking-wider text-gray-400 uppercase">
+                                    <th class="py-5 px-6">Rank Index</th>
+                                    <th class="py-5 px-6">Competitor Persona</th>
+                                    <th class="py-5 px-6 text-center">Wins Verified</th>
+                                    <th class="py-5 px-6 text-center">Score Delta (XP)</th>
+                                    <th class="py-5 px-6 text-center">Trend Vector</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboard-target" class="text-sm divide-y divide-white/5 font-medium">
+                                <!-- Filled by init loop -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PERFORMANCE DATA METRICS -->
+        <section class="py-20 bg-zinc-950/40 border-t border-white/5">
+            <div class="max-w-screen-2xl mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="glass p-6 rounded-2xl border border-white/5">
+                        <h3 class="text-sm font-mono tracking-widest text-cyan-400 mb-6 uppercase">Simulated Throughput (24h Scale)</h3>
+                        <div class="relative max-w-full"><canvas id="chartActivity" height="180"></canvas></div>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border border-white/5">
+                        <h3 class="text-sm font-mono tracking-widest text-purple-400 mb-6 uppercase">Revenue Vector Quantization</h3>
+                        <div class="relative max-w-full"><canvas id="chartRevenue" height="180"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AI ASSISTANT NEURAL CORE -->
+        <section id="ai" class="py-20">
+            <div class="max-w-screen-2xl mx-auto px-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+                    <div class="lg:col-span-8 glass rounded-2xl border border-white/10 p-6 flex flex-col justify-between shadow-2xl">
+                        <div>
+                            <div class="flex items-center gap-4 border-b border-white/5 pb-4 mb-6">
+                                <div class="w-12 h-12 bg-cyan-950 border border-cyan-500/30 rounded-xl flex items-center justify-center text-xl text-cyan-400 shadow-inner">
+                                    <i class="fa-solid fa-robot"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-lg font-bold logo-font tracking-wide">NEURAL COACH v4</h3>
+                                    <p class="text-xs text-emerald-400 font-mono flex items-center gap-1.5"><span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span> ONLINE & PROCESSING</p>
+                                </div>
+                            </div>
+                            
+                            <div id="ai-chat-output" class="h-80 overflow-y-auto space-y-4 pr-3 text-sm">
+                                <!-- Populated dynamically by engine loops -->
+                            </div>
+                        </div>
+                        
+                        <div class="flex gap-3 mt-6 border-t border-white/5 pt-4">
+                            <input id="ai-chat-input" type="text" placeholder="Query court positioning parameters or mechanics optimization..." 
+                                   class="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-400 transition-colors text-sm font-light">
+                            <button onclick="AI_COACH.dispatchMessage()" 
+                                    class="px-6 bg-cyan-500 hover:bg-cyan-400 text-black rounded-xl font-bold tracking-wider text-xs uppercase shadow-lg shadow-cyan-500/10 transition-colors">
+                                Dispatch
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="lg:col-span-4 flex flex-col gap-6">
+                        <div class="glass p-6 rounded-2xl border border-white/5 flex-1">
+                            <h4 class="text-xs font-mono tracking-widest text-cyan-400 mb-4 uppercase">Optimization Vectors</h4>
+                            <div class="space-y-2">
+                                <div onclick="AI_COACH.injectPresetQuery('Analyze optimal court recovery vectors for overhead lobs')" class="p-3 bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-cyan-400/30 rounded-xl cursor-pointer text-xs transition-all flex items-center justify-between text-gray-300">
+                                    <span>Overhead Lob Recovery</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-500"></i>
+                                </div>
+                                <div onclick="AI_COACH.injectPresetQuery('What engine parameters characterize top tier defensive court coverage?')" class="p-3 bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-cyan-400/30 rounded-xl cursor-pointer text-xs transition-all flex items-center justify-between text-gray-300">
+                                    <span>Defensive Court Coverage</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-500"></i>
+                                </div>
+                                <div onclick="AI_COACH.injectPresetQuery('Recommend structural weapon components for high velocity striking dynamics')" class="p-3 bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-cyan-400/30 rounded-xl cursor-pointer text-xs transition-all flex items-center justify-between text-gray-300">
+                                    <span>Weapon System Calibration</span> <i class="fa-solid fa-chevron-right text-[10px] text-gray-500"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass p-6 rounded-2xl border border-white/5">
+                            <h4 class="text-xs font-mono tracking-widest text-purple-400 mb-3 uppercase">Linked Inventory Suggestions</h4>
+                            <div class="flex gap-2 text-[11px] font-mono">
+                                <span class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-md text-gray-300">ERBIL PRO RACKET v2</span>
+                                <span class="bg-white/5 border border-white/10 px-3 py-1.5 rounded-md text-gray-300">SYNTH GRIP MATRIX</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
+    <!-- FOOTER -->
+    <footer class="border-t border-white/5 bg-zinc-950/80 py-12 relative z-10 backdrop-blur-md">
+        <div class="max-w-screen-2xl mx-auto px-6 text-gray-500 text-xs flex flex-col sm:flex-row justify-between items-center gap-6">
+            <div class="font-mono tracking-wider">© 2026 PADEL ERBIL MATRIX SYSTEM DATA CONTEXT.</div>
+            <div class="flex gap-6 font-semibold tracking-wide">
+                <a href="#" class="hover:text-white transition-colors">DOCUMENTATION</a>
+                <a href="#" class="hover:text-white transition-colors">API ACCESS</a>
+                <a href="#" class="hover:text-white transition-colors">SECURITY PIPELINE</a>
+            </div>
+            <div class="flex gap-4 text-sm text-gray-400">
+                <a href="#" class="hover:text-cyan-400 transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
+                <a href="#" class="hover:text-cyan-400 transition-colors"><i class="fa-brands fa-discord"></i></a>
+                <a href="#" class="hover:text-cyan-400 transition-colors"><i class="fa-brands fa-github"></i></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- TRANSACTION CONTROL MODAL (E-COMMERCE CHECKOUT PIPELINE) -->
+    <div id="cart-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="glass w-full max-w-lg rounded-2xl p-6 border border-white/10 shadow-2xl relative flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center border-b border-white/5 pb-4 mb-4">
+                <h3 class="text-xl font-bold logo-font tracking-wide text-white flex items-center gap-2">
+                    <i class="fa-solid fa-wallet text-cyan-400 text-base"></i> TRANSACTION INVENTORY
+                </h3>
+                <button onclick="COMMERCE_ENGINE.toggleCartModal()" class="text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div id="cart-items-target" class="space-y-4 overflow-y-auto flex-1 pr-1 py-2">
+                <!-- Injected items loop context -->
+            </div>
+            
+            <div class="border-t border-white/5 pt-4 mt-4 space-y-2 text-xs font-mono text-gray-400">
+                <div class="flex justify-between"><span>Pipeline Allocation Subtotal</span><span id="cart-calc-subtotal" class="text-white font-bold">$0.00</span></div>
+                <div class="flex justify-between"><span>Simulated Regional Tariff (Taxes)</span><span id="cart-calc-tax" class="text-white font-bold">$0.00</span></div>
+                <div class="flex justify-between border-b border-white/5 pb-2"><span>Flat Logistics Allocation</span><span id="cart-calc-shipping" class="text-white font-bold">$0.00</span></div>
+                <div class="flex justify-between text-base text-cyan-400 font-bold pt-1">
+                    <span class="logo-font">AGGREGATED TOTAL VALUE</span>
+                    <span id="cart-calc-total" class="font-mono">$0.00</span>
+                </div>
+            </div>
+            
+            <div id="checkout-status-panel" class="hidden mt-4 bg-cyan-950/40 border border-cyan-500/30 rounded-xl p-4 text-center font-mono text-xs text-cyan-400">
+                <!-- Status reporting field -->
+            </div>
+
+            <button id="btn-checkout-trigger" onclick="COMMERCE_ENGINE.executeCheckoutPipeline()" 
+                    class="w-full mt-6 py-4 bg-gradient-to-r from-cyan-400 to-purple-600 text-black font-bold logo-font tracking-widest text-xs uppercase rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5">
+                Commit Order Architecture
+            </button>
+        </div>
+    </div>
+
+    <!-- CORE EXECUTION LOGIC SCRIPTS -->
     <script>
-        // Tab Navigation Mechanics
-        function switchTab(tabName) {
-            document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`${tabName}-section`).classList.add('active');
-            event.target.classList.add('active');
-        }
+        // System wide context configuration data structures
+        const CONFIGURATION = {
+            PRODUCTS: [
+                { id: 1, name: "ERBIL CARBON BLADE X1", price: 229, category: "rackets", emoji: "🎾", rating: 5, stockCode: "SKU-ERB-01" },
+                { id: 2, name: "VELOCITY KINETIC COURT MATRIX", price: 159, category: "shoes", emoji: "👟", rating: 4, stockCode: "SKU-ERB-02" },
+                { id: 3, name: "NITRO FLARE BALL QUANTUM PACK", price: 45, category: "accessories", emoji: "📦", rating: 5, stockCode: "SKU-ERB-03" },
+                { id: 4, name: "TOUR PACK INTEGRAL CORE BAG", price: 89, category: "accessories", emoji: "🎒", rating: 4, stockCode: "SKU-ERB-04" }
+            ],
+            LEADERBOARD_SEED: [
+                { rank: 1, name: "KurdishAce_V2", wins: 142, xp: 9840, trend: "up" },
+                { rank: 2, name: "PadelPhantom_X", wins: 119, xp: 8720, trend: "down" },
+                { rank: 3, name: "ErbilSmasher_Alpha", wins: 98, xp: 7650, trend: "up" },
+                { rank: 4, name: "NeonLob_Quantum", wins: 87, xp: 6930, trend: "neutral" },
+                { rank: 5, name: "RacketRebel_Delta", wins: 76, xp: 6120, trend: "up" }
+            ]
+        };
 
-        /**
-         * ==========================================
-         * MULTIPLAYER SOCKET NETWORK ENGINE
-         * ==========================================
-         */
-        const socket = io({ autoConnect: false }); // Explicitly handles gateway connections
-        const canvas = document.getElementById('padelCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        let localRoomId = null;
-        let assignedSide = null; // 'left' or 'right'
-        let currentPaddleY = 175;
-        const paddleWidth = 12;
-        const paddleHeight = 85;
-
-        // Visual Synchronization Variables
-        let serverGameState = { ball: { x: 400, y: 225 }, p1Y: 175, p2Y: 175, score: { left: 0, right: 0 } };
-
-        // Handle successful connection gateway updates
-        socket.on('connect', () => {
-            document.getElementById('status-dot').className = "dot online";
-            document.getElementById('status-text').innerText = "Cluster Connected";
-        });
-
-        // Event: Server signals match pairing is locked
-        socket.on('match_ready', (data) => {
-            localRoomId = data.roomId;
-            assignedSide = data.side;
-            
-            document.getElementById('lobby-ui').style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('room-id-display').style.display = 'block';
-            document.getElementById('active-room-txt').innerText = localRoomId;
-            document.getElementById('status-dot').className = "dot online";
-            document.getElementById('status-text').innerText = `Live (${assignedSide.toUpperCase()})`;
-
-            // Initialize localized tracking listeners
-            initiateLocalInputListeners();
-        });
-
-        // Event: High-speed delta matrix snapshot arrives
-        socket.on('court_state_update', (incomingState) => {
-            serverGameState = incomingState;
-            renderArena();
-        });
-
-        function joinQueue(mode) {
-            const name = document.getElementById('usernameInput').value.trim() || 'KRG_Player';
-            if (!socket.connected) socket.connect();
-
-            socket.emit('enter_matchmaking', { username: name, mode: mode });
-            
-            document.getElementById('status-dot').className = "dot searching";
-            document.getElementById('status-text').innerText = `Searching ${mode}...`;
-            document.querySelectorAll('.mm-btn').forEach(b => b.disabled = true);
-        }
-
-        function initiateLocalInputListeners() {
-            window.addEventListener('keydown', (e) => {
-                let moved = false;
-                if (e.code === 'KeyW' || e.code === 'ArrowUp') {
-                    if (currentPaddleY > 10) { currentPaddleY -= 15; moved = true; }
+        // AUDIO CONTEXT SYSTEM SYNTHESIS ENGINE (FIFA Realism Layer)
+        const AUDIO_SYNTH = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
                 }
-                if (e.code === 'KeyS' || e.code === 'ArrowDown') {
-                    if (currentPaddleY < canvas.height - paddleHeight - 10) { currentPaddleY += 15; moved = true; }
+            },
+            playTone(frequency, type, duration, gainValue = 0.1) {
+                try {
+                    this.init();
+                    if (!this.ctx) return;
+                    const osc = this.ctx.createOscillator();
+                    const gainNode = this.ctx.createGain();
+                    
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(frequency, this.ctx.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(gainValue, this.ctx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(this.ctx.destination);
+                    
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {
+                    // Fail gracefully if device block policy restricts execution context
                 }
-
-                // Push position delta packet down the socket pipeline if updated
-                if (moved && localRoomId) {
-                    socket.emit('player_input', { roomId: localRoomId, positionY: currentPaddleY });
-                }
-            });
-        }
-
-        function renderArena() {
-            // Refresh Court Background
-            ctx.fillStyle = '#0055a5';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Draw Central Net Marking
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(canvas.width / 2, 0);
-            ctx.lineTo(canvas.width / 2, canvas.height);
-            ctx.stroke();
-
-            // Render Paddles via incoming state synchronization map
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(30, serverGameState.p1Y, paddleWidth, paddleHeight); // Team Left
-            ctx.fillRect(canvas.width - 30 - paddleWidth, serverGameState.p2Y, paddleWidth, paddleHeight); // Team Right
-
-            // Render Ball Position
-            ctx.fillStyle = '#ccff00';
-            ctx.beginPath();
-            ctx.arc(serverGameState.ball.x, serverGameState.ball.y, 8, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Render Scoreboard Layout Overlay
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.font = 'bold 32px monospace';
-            ctx.fillText(serverGameState.score.left, canvas.width / 2 - 60, 45);
-            ctx.fillText(serverGameState.score.right, canvas.width / 2 + 40, 45);
-        }
-
-        /**
-         * ==========================================
-         * ASYNCHRONOUS ASSET CHECKOUT ENGINE
-         * ==========================================
-         */
-        async function processCheckout(productName) {
-            try {
-                const response = await fetch('/api/checkout/create-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        items: [{ name: productName, qty: 1 }],
-                        paymentMethod: 'FastPay',
-                        deliveryAddress: 'Erbil, Gulan Street'
-                    })
-                });
-                const data = await response.json();
-                alert(`📦 Order Placed!\nID: ${data.orderId}\nDelivery: ${data.estimatedDelivery}`);
-            } catch (error) {
-                console.error('Checkout Endpoint Failure:', error);
-                alert('Order Routing Error. Check local server execution logs.');
             }
-        }
+        };
+
+        // COMMERCE ARCHITECTURE MODULE (eBay Level Architecture)
+        const COMMERCE_ENGINE = {
+            cartState: [],
+            
+            init() {
+                this.renderCatalog(CONFIGURATION.PRODUCTS);
+                this.updateGlobalCartCounters();
+            },
+            
+            renderCatalog(items) {
+                const target = document.getElementById('product-grid');
+                if(!target) return;
+                target.innerHTML = items.map(product => `
+                    <div class="glass rounded-2xl overflow-hidden card-hover border border-white/5 group flex flex-col justify-between">
+                        <div class="h-56 bg-zinc-900/60 flex items-center justify-center text-6xl relative select-none border-b border-white/5">
+                            ${product.emoji}
+                            <span class="absolute top-3 left-3 bg-white/5 border border-white/10 px-2 py-0.5 rounded text-[9px] font-mono text-gray-400 tracking-wider">${product.stockCode}</span>
+                        </div>
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <div class="flex justify-between items-start gap-2">
+                                    <h3 class="font-bold text-base tracking-wide text-white group-hover:text-cyan-400 transition-colors">${product.name}</h3>
+                                    <span class="text-xl font-black font-mono text-white">$${product.price}</span>
+                                </div>
+                                <div class="text-amber-400 text-xs mt-1">
+                                    ${'★'.repeat(product.rating)}${'☆'.repeat(5-product.rating)}
+                                </div>
+                            </div>
+                            <button onclick="COMMERCE_ENGINE.injectItemToCart(${product.id})" 
+                                    class="w-full py-3 bg-white text-black rounded-xl font-bold tracking-wider text-xs uppercase hover:bg-cyan-400 transition-colors shadow-md">
+                                Ingest Inventory Unit
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            filterCatalog(category) {
+                if(category === 'all') {
+                    this.renderCatalog(CONFIGURATION.PRODUCTS);
+                } else {
+                    const filtered = CONFIGURATION.PRODUCTS.filter(p => p.category === category);
+                    this.renderCatalog(filtered);
+                }
+            },
+            
+            injectItemToCart(productId) {
+                const match = CONFIGURATION.PRODUCTS.find(p => p.id === productId);
+                if (!match) return;
+                
+                const existing = this.cartState.find(item => item.product.id === productId);
+                if (existing) {
+                    existing.quantity++;
+                } else {
+                    this.cartState.push({ product: match, quantity: 1 });
+                }
+                
+                AUDIO_SYNTH.playTone(587.33, 'triangle', 0.15, 0.05); // D5 tone feedback
+                this.updateGlobalCartCounters();
+                this.spawnNotificationToast(`Appended ${match.name} to transaction pool context.`);
+            },
+
+            spawnNotificationToast(message) {
+                const toast = document.createElement('div');
+                toast.className = "fixed bottom-6 right-6 glass px-5 py-3 rounded-xl text-xs font-mono border border-cyan-400/30 z-[200] shadow-2xl tracking-wide animate-fade-in";
+                toast.innerHTML = `<span class="text-cyan-400 font-bold">SYSTEM //</span> ${message}`;
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+            },
+            
+            updateGlobalCartCounters() {
+                const countElement = document.getElementById('cart-count');
+                const uniqueCount = this.cartState.reduce((acc, item) => acc + item.quantity, 0);
+                if(countElement) countElement.textContent = uniqueCount;
+            },
+            
+            toggleCartModal() {
+                const modal = document.getElementById('cart-modal');
+                if(!modal) return;
+                modal.classList.toggle('hidden');
+                if (!modal.classList.contains('hidden')) {
+                    this.reconstructCartView();
+                }
+            },
+            
+            reconstructCartView() {
+                const container = document.getElementById('cart-items-target');
+                if(!container) return;
+                container.innerHTML = '';
+                
+                if (this.cartState.length === 0) {
+                    container.innerHTML = `<p class="text-xs font-mono text-gray-500 text-center py-8">Operational memory buffer empty. No units allocated.</p>`;
+                    this.calculateFinancialAggregations(0);
+                    return;
+                }
+                
+                let cumulativeSubtotal = 0;
+                
+                this.cartState.forEach((item, index) => {
+                    const calculatedLineCost = item.product.price * item.quantity;
+                    cumulativeSubtotal += calculatedLineCost;
+                    
+                    const el = document.createElement('div');
+                    el.className = "flex items-center justify-between bg-white/[0.02] border border-white/5 p-3 rounded-xl font-mono text-xs";
+                    el.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-lg">${item.product.emoji}</span>
+                            <div>
+                                <p class="text-white font-bold tracking-wide">${item.product.name}</p>
+                                <p class="text-[10px] text-gray-500 mt-0.5">Unit Value: $${item.product.price} | Allocated Allocations: ${item.quantity}</p>
+                            </div>
+                        </div>
+                        <div class="text-right flex items-center gap-4">
+                            <span class="font-bold text-white text-sm">$${calculatedLineCost}</span>
+                            <button onclick="COMMERCE_ENGINE.purgeCartLine(${index})" class="text-gray-500 hover:text-red-400 transition-colors"><i class="fa-regular fa-trash-can"></i></button>
+                        </div>
+                    `;
+                    container.appendChild(el);
+                });
+                
+                this.calculateFinancialAggregations(cumulativeSubtotal);
+            },
+
+            purgeCartLine(index) {
+                this.cartState.splice(index, 1);
+                this.updateGlobalCartCounters();
+                this.reconstructCartView();
+                AUDIO_SYNTH.playTone(220, 'sawtooth', 0.1, 0.05); // low feedback tone
+            },
+            
+            calculateFinancialAggregations(subtotal) {
+                const assessmentTariff = subtotal * 0.08; // 8% calculated baseline
+                const logisticsAllocation = subtotal > 0 ? 15.00 : 0.00; // Flat allocation threshold
+                const absoluteAggregation = subtotal + assessmentTariff + logisticsAllocation;
+                
+                document.getElementById('cart-calc-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+                document.getElementById('cart-calc-tax').textContent = `$${assessmentTariff.toFixed(2)}`;
+                document.getElementById('cart-calc-shipping').textContent = `$${logisticsAllocation.toFixed(2)}`;
+                document.getElementById('cart-calc-total').textContent = `$${absoluteAggregation.toFixed(2)}`;
+            },
+            
+            executeCheckoutPipeline() {
+                if(this.cartState.length === 0) {
+                    this.spawnNotificationToast("Process Aborted: Vector data resolution contains zero weight units.");
+                    return;
+                }
+                
+                const statusPanel = document.getElementById('checkout-status-panel');
+                const triggerBtn = document.getElementById('btn-checkout-trigger');
+                
+                statusPanel.classList.remove('hidden');
+                triggerBtn.disabled = true;
+                triggerBtn.style.opacity = '0.5';
+                
+                let operationsTick = 0;
+                const statusPhases = [
+                    "VALIDATING SECURE CRYPTO ENDPOINTS...",
+                    "VERIFYING DISTRIBUTED LEDGER STOCK BALANCE...",
+                    "COMMITTING PIPELINE STATE TRANSACTION...",
+                    "ARCHITECTURAL INTEGRITY SECURED. SUCCESS."
+                ];
+                
+                statusPanel.textContent = statusPhases[0];
+                AUDIO_SYNTH.playTone(880, 'sine', 0.05, 0.05);
+                
+                const loopInterval = setInterval(() => {
+                    operationsTick++;
+                    if(operationsTick < statusPhases.length) {
+                        statusPanel.textContent = statusPhases[operationsTick];
+                        AUDIO_SYNTH.playTone(880 + (operationsTick*100), 'sine', 0.05, 0.05);
+                    } else {
+                        clearInterval(loopInterval);
+                        alert("📦 TRANSACTION ARCHITECTURE RECORDED COMMITTED SECURELY. Simulated order pipeline executed.");
+                        COMMERCE_ENGINE.cartState = [];
+                        COMMERCE_ENGINE.updateGlobalCartCounters();
+                        statusPanel.classList.add('hidden');
+                        triggerBtn.disabled = false;
+                        triggerBtn.style.opacity = '1';
+                        COMMERCE_ENGINE.toggleCartModal();
+                    }
+                }, 900);
+            }
+        };
+
+        // PHYSICS & RENDERING ENGINE PIPELINE (FIFA Fluid Dynamics Layer)
+        const GAMING_ENGINE = {
+            canvas: null,
+            ctx: null,
+            loopIntervalId: null,
+            isRunning: false,
+            timeScaleSeconds: 522, // 08:42 initialization values saved
+            
+            // Core Engine Spatial States
+            ball: { x: 400, y: 225, vx: 5, vy: 3, radius: 8, speedMagnitude: 6, maxSpeed: 14 },
+            paddleHome: { x: 30, y: 165, width: 12, height: 90, targetY: 165 },
+            paddleAway: { x: 758, y: 165, width: 12, height: 90 },
+            scoring: { home: 12, away: 9 },
+
+            init() {
+                this.canvas = document.getElementById('gameCanvas');
+                if(!this.canvas) return;
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.syncDOMScore();
+                this.renderStaticContextScene();
+                this.hookInputDevices();
+                
+                setInterval(() => {
+                    if(this.isRunning) {
+                        this.timeScaleSeconds++;
+                        this.syncDOMTimer();
+                    }
+                }, 1000);
+            },
+            
+            hookInputDevices() {
+                this.canvas.addEventListener('mousemove', (e) => {
+                    const spatialBoundaries = this.canvas.getBoundingClientRect();
+                    const functionalY = e.clientY - spatialBoundaries.top;
+                    // Clamp input to operational grid space parameters
+                    this.paddleHome.targetY = Math.max(0, Math.min(this.canvas.height - this.paddleHome.height, functionalY - this.paddleHome.height/2));
+                });
+            },
+            
+            startInteractiveMatch() {
+                if(this.loopIntervalId) clearInterval(this.loopIntervalId);
+                this.isRunning = true;
+                document.getElementById('game-pause-overlay').classList.add('hidden');
+                document.getElementById('txt-game-pause').textContent = "Pause Simulation";
+                
+                this.resetBallVector();
+                this.loopIntervalId = setInterval(() => this.executionCycleLoop(), 1000/60);
+                this.spawnEngineNotification("Spatial simulation pipelines processing.");
+            },
+            
+            togglePause() {
+                if(!this.loopIntervalId) return;
+                this.isRunning = !this.isRunning;
+                const overlay = document.getElementById('game-pause-overlay');
+                const label = document.getElementById('txt-game-pause');
+                
+                if(this.isRunning) {
+                    overlay.classList.add('hidden');
+                    label.textContent = "Pause Simulation";
+                } else {
+                    overlay.classList.remove('hidden');
+                    label.textContent = "Resume Match";
+                }
+            },
+            
+            reset() {
+                this.scoring.home = 0;
+                this.scoring.away = 0;
+                this.timeScaleSeconds = 0;
+                this.syncDOMScore();
+                this.syncDOMTimer();
+                this.resetBallVector();
+                if(!this.isRunning) this.renderStaticContextScene();
+                this.spawnEngineNotification("Context state memory allocation cleared.");
+            },
+            
+            resetBallVector() {
+                this.ball.x = this.canvas.width / 2;
+                this.ball.y = this.canvas.height / 2;
+                const polarDirection = Math.random() > 0.5 ? 1 : -1;
+                this.ball.vx = polarDirection * this.ball.speedMagnitude * 0.8;
+                this.ball.vy = (Math.random() * 2 - 1) * this.ball.speedMagnitude * 0.5;
+            },
+            
+            executionCycleLoop() {
+                if (!this.isRunning) return;
+                
+                // Linear interpolation mechanics for fluid paddle translation simulation
+                this.paddleHome.y += (this.paddleHome.targetY - this.paddleHome.y) * 0.24;
+                
+                // Advanced Automated Neural Interception Pathing (AI Layer)
+                const predictiveOffset = this.ball.vy * 1.5;
+                const centerTargetOffset = this.ball.y - (this.paddleAway.y + this.paddleAway.height / 2) + predictiveOffset;
+                this.paddleAway.y += centerTargetOffset * 0.14; // Tracking stiffness matrix scalar
+                this.paddleAway.y = Math.max(0, Math.min(this.canvas.height - this.paddleAway.height, this.paddleAway.y));
+                
+                // Physics Kinematic Updates
+                this.ball.x += this.ball.vx;
+                this.ball.y += this.ball.vy;
+                
+                // Boundary Constraint Inversion Vectors (Walls)
+                if (this.ball.y - this.ball.radius < 0) {
+                    this.ball.y = this.ball.radius;
+                    this.ball.vy = -this.ball.vy;
+                    AUDIO_SYNTH.playTone(330, 'sine', 0.08, 0.02);
+                } else if (this.ball.y + this.ball.radius > this.canvas.height) {
+                    this.ball.y = this.canvas.height - this.ball.radius;
+                    this.ball.vy = -this.ball.vy;
+                    AUDIO_SYNTH.playTone(330, 'sine', 0.08, 0.02);
+                }
+                
+                // Continuous Detection Intersection Matrix (Paddles)
+                if (this.ball.vx < 0) { // Moving Left toward Home Paddle
+                    if (this.ball.x - this.ball.radius <= this.paddleHome.x + this.paddleHome.width && 
+                        this.ball.x - this.ball.radius >= this.paddleHome.x) {
+                        if (this.ball.y >= this.paddleHome.y && this.ball.y <= this.paddleHome.y + this.paddleHome.height) {
+                            
+                            // Dynamic angle vectoring determined by relative impact point offset
+                            const structuralImpactScalar = (this.ball.y - (this.paddleHome.y + this.paddleHome.height/2)) / (this.paddleHome.height/2);
+                            const dynamicReflectionAngle = structuralImpactScalar * (Math.PI / 3); 
+                            
+                            const compositeMagnitude = Math.min(this.ball.maxSpeed, Math.abs(this.ball.vx) * 1.05);
+                            this.ball.vx = Math.cos(dynamicReflectionAngle) * compositeMagnitude;
+                            this.ball.vy = Math.sin(dynamicReflectionAngle) * compositeMagnitude;
+                            this.ball.x = this.paddleHome.x + this.paddleHome.width + this.ball.radius;
+                            
+                            AUDIO_SYNTH.playTone(440, 'triangle', 0.1, 0.06);
+                        }
+                    }
+                } else { // Moving Right toward Away Paddle
+                    if (this.ball.x + this.ball.radius >= this.paddleAway.x && 
+                        this.ball.x + this.ball.radius <= this.paddleAway.x + this.paddleAway.width) {
+                        if (this.ball.y >= this.paddleAway.y && this.ball.y <= this.paddleAway.y + this.paddleAway.height) {
+                            
+                            const structuralImpactScalar = (this.ball.y - (this.paddleAway.y + this.paddleAway.height/2)) / (this.paddleAway.height/2);
+                            const dynamicReflectionAngle = structuralImpactScalar * (Math.PI / 3);
+                            
+                            const compositeMagnitude = Math.min(this.ball.maxSpeed, Math.abs(this.ball.vx) * 1.05);
+                            this.ball.vx = -Math.cos(dynamicReflectionAngle) * compositeMagnitude;
+                            this.ball.vy = Math.sin(dynamicReflectionAngle) * compositeMagnitude;
+                            this.ball.x = this.paddleAway.x - this.ball.radius;
+                            
+                            AUDIO_SYNTH.playTone(440, 'triangle', 0.1, 0.06);
+                        }
+                    }
+                }
+                
+                // Out of Bounds Logic (Scoring)
+                if (this.ball.x < 0) {
+                    this.scoring.away++;
+                    this.syncDOMScore();
+                    AUDIO_SYNTH.playTone(180, 'sawtooth', 0.3, 0.08); // low buzz fail tone
+                    this.resetBallVector();
+                } else if (this.ball.x > this.canvas.width) {
+                    this.scoring.home++;
+                    this.syncDOMScore();
+                    AUDIO_SYNTH.playTone(880, 'sine', 0.2, 0.08); // high reward point tone
+                    this.resetBallVector();
+                }
+                
+                this.renderStaticContextScene();
+            },
+            
+            renderStaticContextScene() {
+                // Clear Viewport Buffer
+                this.ctx.fillStyle = '#06060f';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Render Net Segment Dividers
+                this.ctx.strokeStyle = 'rgba(0, 245, 255, 0.15)';
+                this.ctx.lineWidth = 4;
+                this.ctx.setLineDash([10, 10]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.canvas.width/2, 0);
+                this.ctx.lineTo(this.canvas.width/2, this.canvas.height);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]); // clear dash state
+                
+                // Render Lateral Wall Outlines
+                this.ctx.fillStyle = '#00f5ff';
+                this.ctx.fillRect(this.paddleHome.x, this.paddleHome.y, this.paddleHome.width, this.paddleHome.height);
+                
+                this.ctx.fillStyle = '#9d00ff';
+                this.ctx.fillRect(this.paddleAway.x, this.paddleAway.y, this.paddleAway.width, this.paddleAway.height);
+                
+                // Render Vector Dynamic Tracking Sphere (Ball)
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.shadowBlur = 12;
+                this.ctx.shadowColor = '#00f5ff';
+                this.ctx.beginPath();
+                this.ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.shadowBlur = 0; // reset blur filter allocation
+            },
+            
+            syncDOMScore() {
+                document.getElementById('score-left').textContent = this.scoring.home;
+                document.getElementById('score-right').textContent = this.scoring.away;
+                document.getElementById('score-home').textContent = this.scoring.home;
+                document.getElementById('score-away').textContent = this.scoring.away;
+            },
+            
+            syncDOMTimer() {
+                const minutes = Math.floor(this.timeScaleSeconds / 60).toString().padStart(2, '0');
+                const seconds = (this.timeScaleSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('game-timer').textContent = `${minutes}:${seconds}`;
+            },
+            
+            spawnEngineNotification(msg) {
+                console.log(`%cENGINE // ${msg}`, "color: #9d00ff; font-family: monospace; font-size: 11px;");
+            }
+        };
+
+        // MANAGEMENT ANALYSIS & REPORTING METRICS (Charts Engine Layer)
+        const ANALYTICS_INFRASTRUCTURE = {
+            init() {
+                const globalThemeOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10, family: 'Inter' } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 10, family: 'Inter' } } }
+                    }
+                };
+
+                new Chart(document.getElementById('chartActivity'), {
+                    type: 'line',
+                    data: {
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00'],
+                        datasets: [{
+                            data: [420, 680, 1240, 2100, 1890, 1340],
+                            borderColor: '#00f5ff',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: globalThemeOptions
+                });
+
+                new Chart(document.getElementById('chartRevenue'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                        datasets: [{
+                            data: [12400, 18900, 23100, 15400, 28700, 31200],
+                            backgroundColor: '#9d00ff',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: globalThemeOptions
+                });
+            }
+        };
+
+        // AI ASSISTANT NEURAL AGENT SIMULATION
+        const AI_COACH = {
+            init() {
+                const target = document.getElementById('ai-chat-output');
+                if(!target) return;
+                target.innerHTML = `
+                    <div class="bg-white/5 border border-white/5 p-4 rounded-xl max-w-[85%] text-gray-300">
+                        <span class="font-bold text-xs font-mono text-cyan-400 block mb-1">SYSTEM INSIGHT //</span>
+                        Welcome to Padel Erbil Nexus. Query me on structural execution mechanics, component choices, or statistical strategy.
+                    </div>
+                `;
+            },
+            dispatchMessage() {
+                const input = document.getElementById('ai-chat-input');
+                if (!input || !input.value.trim()) return;
+                
+                this.executeChatLog(input.value, 'user');
+                const savedQuery = input.value;
+                input.value = '';
+                
+                setTimeout(() => {
+                    const presetResponses = [
+                        "Dynamic Analysis: Maintaining an elevated elbow spatial coordinate preserves torque vectors on overhead execution sequences.",
+                        "System Recommendation: The ERBIL CARBON BLADE X1 weapon matrix features dynamic center balance configurations ideal for high speed adjustments.",
+                        "Strategic Parameter: Increasing lateral tracking speeds optimizes deep defensive baseline coverage by roughly 14%."
+                    ];
+                    const randomSelection = presetResponses[Math.floor(Math.random() * presetResponses.length)];
+                    this.executeChatLog(randomSelection, 'agent');
+                    AUDIO_SYNTH.playTone(700, 'sine', 0.05, 0.02);
+                }, 750);
+            },
+            injectPresetQuery(queryText) {
+                this.executeChatLog(queryText, 'user');
+                setTimeout(() => {
+                    this.executeChatLog("Dynamic Analysis: Optimization vector updated. Target tactical profiling parameters adjusted to standard values.", 'agent');
+                    AUDIO_SYNTH.playTone(700, 'sine', 0.05, 0.02);
+                }, 600);
+            },
+            executeChatLog(text, targetOrigin) {
+                const container = document.getElementById('ai-chat-output');
+                if(!container) return;
+                
+                const wrapper = document.createElement('div');
+                if (targetOrigin === 'user') {
+                    wrapper.className = "bg-cyan-500/10 border border-cyan-500/20 p-4 rounded-xl max-w-[85%] ml-auto text-cyan-300 font-mono text-xs";
+                    wrapper.innerHTML = `<span class="font-black text-[10px] text-cyan-400 block mb-1">OPERATOR //</span> ${text}`;
+                } else {
+                    wrapper.className = "bg-white/5 border border-white/5 p-4 rounded-xl max-w-[85%] text-gray-300";
+                    wrapper.innerHTML = `<span class="font-bold text-xs font-mono text-purple-400 block mb-1">SYSTEM INSIGHT //</span> ${text}`;
+                }
+                
+                container.appendChild(wrapper);
+                container.scrollTop = container.scrollHeight;
+            }
+        };
+
+        // DOM UTILITIES AND COUNTER MOTIONS
+        const REALTIME_COUNTER_WIDGETS = {
+            init() {
+                this.executeAnimateSequence('metric-online', 0, 12459, 1500);
+                this.executeAnimateSequence('metric-matches', 0, 8734, 1500);
+                this.executeAnimateSequence('metric-orders', 0, 1241, 1500);
+                this.executeAnimateSequence('metric-revenue', 0, 89000, 1500, '$', 'k');
+                this.initLeaderboardDOM();
+            },
+            executeAnimateSequence(targetId, start, end, totalDuration, prefix='', suffix='') {
+                const element = document.getElementById(targetId);
+                if(!element) return;
+                
+                let startTimestamp = null;
+                const calculationStep = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const elapsedFraction = Math.min((timestamp - startTimestamp) / totalDuration, 1);
+                    const intermediateValue = Math.floor(elapsedFraction * (end - start) + start);
+                    
+                    if(suffix === 'k') {
+                        element.textContent = prefix + (intermediateValue / 1000).toFixed(0) + 'K';
+                    } else {
+                        element.textContent = prefix + intermediateValue.toLocaleString();
+                    }
+                    
+                    if (elapsedFraction < 1) {
+                        window.requestAnimationFrame(calculationStep);
+                    }
+                };
+                window.requestAnimationFrame(calculationStep);
+            },
+            initLeaderboardDOM() {
+                const target = document.getElementById('leaderboard-target');
+                if(!target) return;
+                target.innerHTML = CONFIGURATION.LEADERBOARD_SEED.map(player => `
+                    <tr class="border-b border-white/5 hover:bg-white/[0.01] transition-colors font-mono text-xs">
+                        <td class="py-4 px-6 font-bold text-cyan-400">#0${player.rank}</td>
+                        <td class="py-4 px-6 text-white font-sans font-semibold">${player.name}</td>
+                        <td class="py-4 px-6 text-center text-gray-300">${player.wins}</td>
+                        <td class="py-4 px-6 text-center text-purple-400 font-bold">${player.xp}</td>
+                        <td class="py-4 px-6 text-center">
+                            ${player.trend === 'up' ? '<span class="text-emerald-400"><i class="fa-solid fa-caret-up"></i> VECTOR_UP</span>' : 
+                              player.trend === 'down' ? '<span class="text-rose-500"><i class="fa-solid fa-caret-down"></i> VECTOR_DOWN</span>' : 
+                              '<span class="text-gray-500"><i class="fa-solid fa-minus"></i> STABLE</span>'}
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        };
+
+        // MASTER INITIALIZATION LIFECYCLE HOOK
+        window.addEventListener('DOMContentLoaded', () => {
+            COMMERCE_ENGINE.init();
+            GAMING_ENGINE.init();
+            ANALYTICS_INFRASTRUCTURE.init();
+            AI_COACH.init();
+            REALTIME_COUNTER_WIDGETS.init();
+            
+            // Remove application loader visualization shield layer smoothly
+            setTimeout(() => {
+                const shield = document.getElementById('loading');
+                if(shield) {
+                    shield.style.opacity = '0';
+                    setTimeout(() => shield.style.display = 'none', 500);
+                }
+            }, 1000);
+            
+            console.log('%c🚀 PADEL ERBIL MATRIX ENGINE v2.4 INITIALIZED STABLE', 'color:#00f5ff; font-family:monospace; font-weight:bold; font-size:12px');
+        });
     </script>
 </body>
 </html>
