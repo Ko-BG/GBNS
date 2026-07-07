@@ -170,13 +170,18 @@ function executeGamePhysicsLoop(roomId) {
         const ball = state.ball;
 
         // Wall Deflections (Top & Bottom Boundaries)
-        if (ball.y <= 0 || ball.y >= ENGINE_CONFIG.COURT_DIMENSIONS.HEIGHT) {
+        if (ball.y <= 0) {
+            ball.y = 0;
+            ball.dy = -ball.dy;
+        } else if (ball.y >= ENGINE_CONFIG.COURT_DIMENSIONS.HEIGHT) {
+            ball.y = ENGINE_CONFIG.COURT_DIMENSIONS.HEIGHT;
             ball.dy = -ball.dy;
         }
 
         // Left Paddle Rigid Body Interaction Handling
         if (ball.x <= ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH) {
             if (ball.y >= state.paddleLeftY && ball.y <= state.paddleLeftY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT) {
+                ball.x = ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; // Anti-clipping injection
                 ball.dx = ENGINE_CONFIG.BALL_BASE_SPEED;
                 ball.dy = ((ball.y - (state.paddleLeftY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) / 10);
             }
@@ -185,6 +190,7 @@ function executeGamePhysicsLoop(roomId) {
         // Right Paddle Rigid Body Interaction Handling
         if (ball.x >= ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH) {
             if (ball.y >= state.paddleRightY && ball.y <= state.paddleRightY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT) {
+                ball.x = ENGINE_CONFIG.COURT_DIMENSIONS.WIDTH - ENGINE_CONFIG.PADDLE_DIMENSIONS.WIDTH; // Anti-clipping injection
                 ball.dx = -ENGINE_CONFIG.BALL_BASE_SPEED;
                 ball.dy = ((ball.y - (state.paddleRightY + ENGINE_CONFIG.PADDLE_DIMENSIONS.HEIGHT / 2)) / 10);
             }
@@ -249,6 +255,10 @@ io.on('connection', (socket) => {
 
     socket.on('enter_matchmaking', (payload) => {
         try {
+            if (!payload || typeof payload !== 'object') {
+                return socket.emit('error_payload', { message: "Malformatted payload object." });
+            }
+
             const { username, mode, clientMmr } = payload;
             if (!username || !['single', 'doubles'].includes(mode)) {
                 return socket.emit('error_payload', { message: "Invalid payload parameters processing queue assignment." });
@@ -273,7 +283,11 @@ io.on('connection', (socket) => {
     });
 
     socket.on('player_input', (data) => {
+        if (!data || typeof data !== 'object') return;
+        
         const { roomId, positionY } = data;
+        if (!roomId || typeof positionY !== 'number' || isNaN(positionY)) return;
+
         const room = activeMatchRooms.get(roomId);
         if (!room) return;
 
